@@ -152,6 +152,9 @@ class ProcessesPage(QWidget):
                     )
                 self.table.setItem(row_index, column, item)
 
+        visible_memory = sum(float(row["memory"]) for row in visible_rows)
         self.summary.setText(
-            f"{len(visible_rows)} de {len(self._rows)} processos exibidos"
+            f"{len(visible_rows)} de {len(self._rows)} processos exibidos · "
+            f"Memória dos processos exibidos: "
+            f"{visible_memory / (1024 ** 2):.1f} MB"
         )
