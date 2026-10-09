@@ -39,9 +39,26 @@ class MainWindow(QMainWindow):
         central.setObjectName("central")
         self.setCentralWidget(central)
 
-        root = QHBoxLayout(central)
+        root = QVBoxLayout(central)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
+
+        toolbar = QHBoxLayout()
+        toolbar.setContentsMargins(14, 10, 14, 8)
+        self.menu_toggle = QPushButton("☰")
+        self.menu_toggle.setObjectName("menuToggle")
+        self.menu_toggle.setToolTip("Abrir ou fechar o menu principal")
+        self.menu_toggle.setAccessibleName("Menu principal")
+        self.menu_toggle.setFixedSize(42, 38)
+        self.menu_toggle.setCursor(Qt.CursorShape.PointingHandCursor)
+        toolbar.addWidget(self.menu_toggle)
+        toolbar.addStretch()
+        root.addLayout(toolbar)
+
+        content_row = QHBoxLayout()
+        content_row.setContentsMargins(0, 0, 0, 0)
+        content_row.setSpacing(0)
+        root.addLayout(content_row, 1)
 
         # Build the page stack before the sidebar connects navigation signals.
         self.pages = QStackedWidget()
@@ -80,8 +97,11 @@ class MainWindow(QMainWindow):
         if 0 <= startup_index < self.pages.count():
             self.pages.setCurrentIndex(startup_index)
 
-        root.addWidget(self._build_sidebar())
-        root.addWidget(self.pages, 1)
+        self.sidebar = self._build_sidebar()
+        self.sidebar.hide()
+        content_row.addWidget(self.sidebar)
+        content_row.addWidget(self.pages, 1)
+        self.menu_toggle.clicked.connect(self._toggle_sidebar)
 
     def _read_preferences(self) -> dict[str, object]:
         return {
@@ -153,7 +173,12 @@ class MainWindow(QMainWindow):
         }}
         QWidget {{ color: {text}; }}
         QFrame#sidebar {{ background: {sidebar}; border-right: 1px solid {border}; }}
-        QLabel#brand {{ color: {accent_text}; font-size: 23px; font-weight: 700; }}
+        QLabel#brand {{ color: {accent_text}; font-size: 20px; font-weight: 700; }}
+        QPushButton#menuToggle {{
+            background: {panel}; color: {text}; border: 1px solid {border};
+            border-radius: 9px; font-size: 20px; font-weight: 700;
+        }}
+        QPushButton#menuToggle:hover {{ background: {selected}; border-color: {primary}; }}
         QLabel#muted {{ color: {muted}; }}
         QLabel#pageTitle {{ font-size: 27px; font-weight: 700; }}
         QLabel#heroTitle {{ font-size: 25px; font-weight: 700; color: {text}; }}
@@ -286,14 +311,11 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(16, 25, 16, 18)
         layout.setSpacing(8)
 
-        brand = QLabel("NEXUS")
+        brand = QLabel("Nexus Toolkit")
         brand.setObjectName("brand")
         layout.addWidget(brand)
 
-        subtitle = QLabel("TOOLKIT  /  WINDOWS")
-        subtitle.setObjectName("muted")
-        layout.addWidget(subtitle)
-        layout.addSpacing(28)
+        layout.addSpacing(20)
 
         menu_label = QLabel("MENU PRINCIPAL")
         menu_label.setObjectName("muted")
@@ -334,6 +356,14 @@ class MainWindow(QMainWindow):
         footer.setWordWrap(True)
         layout.addWidget(footer)
         return sidebar
+
+    def _toggle_sidebar(self) -> None:
+        visible = self.sidebar.isVisible()
+        self.sidebar.setVisible(not visible)
+        self.menu_toggle.setText("☰" if visible else "✕")
+        self.menu_toggle.setToolTip(
+            "Abrir o menu principal" if visible else "Fechar o menu principal"
+        )
 
     def _build_dashboard(self) -> QWidget:
         return DashboardPage(self._navigate_to_page)
