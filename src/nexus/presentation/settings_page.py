@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import json
+import platform
+import sys
 from pathlib import Path
 from typing import Any
+
+import psutil
+import PySide6
 
 from PySide6.QtCore import QSettings, Signal
 from PySide6.QtWidgets import (
@@ -143,6 +148,49 @@ class SettingsPage(QWidget):
         privacy_text.setWordWrap(True)
         privacy_layout.addWidget(privacy_text)
         layout.addWidget(privacy)
+
+        about = self._card("Sobre o Nexus Toolkit")
+        about_layout = QVBoxLayout()
+        about.layout().addLayout(about_layout)
+        about_layout.setContentsMargins(18, 18, 18, 18)
+        about_layout.setSpacing(10)
+
+        about_title = QLabel("Nexus Toolkit")
+        about_title.setStyleSheet("font-size: 19px; font-weight: 700;")
+        about_layout.addWidget(about_title)
+        about_description = QLabel(
+            "Ferramentas locais para monitoramento, diagnóstico e organização "
+            "do computador, com foco em transparência e segurança."
+        )
+        about_description.setObjectName("muted")
+        about_description.setWordWrap(True)
+        about_layout.addWidget(about_description)
+
+        self.developer_label = QLabel("Desenvolvido por Italo Gustavo")
+        self.developer_label.setStyleSheet("font-weight: 600;")
+        about_layout.addWidget(self.developer_label)
+        self.version_label = QLabel("Versão do aplicativo: 0.1.0")
+        about_layout.addWidget(self.version_label)
+
+        self.system_details = QLabel()
+        self.system_details.setObjectName("muted")
+        self.system_details.setWordWrap(True)
+        self.system_details.setTextInteractionFlags(
+            self.system_details.textInteractionFlags()
+            | __import__("PySide6.QtCore", fromlist=["Qt"]).Qt.TextInteractionFlag.TextSelectableByMouse
+        )
+        self.system_details.setText(
+            f"Sistema operacional: {platform.system()} {platform.release()}\\n"
+            f"Versão do sistema: {platform.version()}\\n"
+            f"Arquitetura: {platform.machine()}\\n"
+            f"Processador lógico: {psutil.cpu_count(logical=True) or 'Não identificado'}\\n"
+            f"Memória RAM: {psutil.virtual_memory().total / (1024 ** 3):.1f} GB\\n"
+            f"Python: {platform.python_version()}\\n"
+            f"Qt / PySide6: {PySide6.__version__}\\n"
+            f"Executável: {Path(sys.executable).name}"
+        )
+        about_layout.addWidget(self.system_details)
+        layout.addWidget(about)
 
         actions_card = self._card("Backup e manutenção")
         actions = QHBoxLayout()
