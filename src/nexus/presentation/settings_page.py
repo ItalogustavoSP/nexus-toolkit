@@ -39,12 +39,6 @@ class SettingsPage(QWidget):
         super().__init__()
         self.setObjectName("settingsPage")
         self.settings = QSettings()
-        self.setStyleSheet(
-            "QFrame#settingsCard { border-radius: 13px; }"
-            "QLabel#sectionTitle { font-size: 16px; font-weight: 700; }"
-            "QLabel#muted { color: palette(mid); }"
-        )
-
         root = QVBoxLayout(self)
         root.setContentsMargins(34, 30, 34, 30)
         root.setSpacing(18)
@@ -163,6 +157,7 @@ class SettingsPage(QWidget):
         root.addWidget(self.status_label)
         root.addStretch()
 
+        self._load_preferences()
         for control in (
             self.theme_combo,
             self.accent_combo,
@@ -172,7 +167,6 @@ class SettingsPage(QWidget):
         self.sound_checkbox.toggled.connect(self._save_and_emit)
         self.confirm_exit_checkbox.toggled.connect(self._save_and_emit)
         self.startup_combo.currentIndexChanged.connect(self._save_and_emit)
-        self._load_preferences()
 
     @staticmethod
     def _card(title_text: str) -> QFrame:
