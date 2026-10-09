@@ -334,7 +334,10 @@ class DuplicateFilesPage(QWidget):
             f"potencialmente recuperável: {_format_size(wasted_bytes)}. "
             f"Itens inacessíveis: {errors}."
         )
-        if not canceled and QSettings("Nexus Toolkit", "Nexus Toolkit").value("sound_effects", False, type=bool):
+        sound_enabled = QSettings(
+            "Nexus Toolkit", "Nexus Toolkit"
+        ).value("sound_effects", False, type=bool)
+        if not canceled and sound_enabled:
             QApplication.beep()
 
     def _on_thread_finished(self) -> None:
