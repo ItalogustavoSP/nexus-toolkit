@@ -6,7 +6,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-MINIMUM_AGE_SECONDS = 24 * 60 * 60
+MINIMUM_AGE_SECONDS = 7 * 24 * 60 * 60
 
 
 @dataclass(frozen=True)
