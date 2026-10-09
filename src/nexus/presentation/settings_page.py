@@ -11,10 +11,10 @@ from PySide6.QtWidgets import (
     QFormLayout,
     QHBoxLayout,
     QLabel,
+    QCheckBox,
+    QComboBox,
     QMessageBox,
     QPushButton,
-    QComboBox,
-    QCheckBox,
     QVBoxLayout,
     QWidget,
 )
