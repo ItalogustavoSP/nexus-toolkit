@@ -4,6 +4,7 @@ import platform
 import shutil
 from datetime import datetime
 from pathlib import Path
+from collections.abc import Callable
 
 import psutil
 from PySide6.QtCore import Qt, QTimer
@@ -17,7 +18,7 @@ from nexus.presentation.charts import DonutChart, UsageBarChart
 class DashboardPage(QWidget):
     """Live local-system dashboard with native Qt charts."""
 
-    def __init__(self, open_page) -> None:
+    def __init__(self, open_page: Callable[[int], None]) -> None:
         super().__init__()
         self.open_page = open_page
         self.setObjectName("dashboardPage")
@@ -44,6 +45,11 @@ class DashboardPage(QWidget):
         titles.addWidget(subtitle)
         header.addLayout(titles)
         header.addStretch()
+        refresh_button = QPushButton("Atualizar agora  ↻")
+        refresh_button.setObjectName("secondaryButton")
+        refresh_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        refresh_button.clicked.connect(self.refresh)
+        header.addWidget(refresh_button, alignment=Qt.AlignmentFlag.AlignTop)
         self.status = QLabel("● MONITORAMENTO ATIVO")
         self.status.setObjectName("statusPill")
         header.addWidget(self.status, alignment=Qt.AlignmentFlag.AlignTop)
@@ -77,6 +83,7 @@ class DashboardPage(QWidget):
         layout.addWidget(hero)
 
         self.metrics: dict[str, QLabel] = {}
+        self.metric_details: dict[str, QLabel] = {}
         metric_row = QHBoxLayout()
         for key, name in [
             ("cpu", "PROCESSADOR"), ("memory", "MEMÓRIA RAM"),
@@ -93,6 +100,7 @@ class DashboardPage(QWidget):
             detail = QLabel("Atualização automática")
             detail.setObjectName("muted")
             self.metrics[key] = value
+            self.metric_details[key] = detail
             card_layout.addWidget(eyebrow)
             card_layout.addWidget(value)
             card_layout.addWidget(detail)
@@ -197,6 +205,10 @@ class DashboardPage(QWidget):
                 ("disk", f"{disk_percent:.0f}%"), ("processes", str(count)),
             ]:
                 self.metrics[key].setText(value)
+            self.metric_details["cpu"].setText("Uso atual do processador")
+            self.metric_details["memory"].setText(f"{ram_used:.1f} de {ram_total:.1f} GB em uso")
+            self.metric_details["disk"].setText(f"{disk.free / (1024 ** 3):.1f} GB livres")
+            self.metric_details["processes"].setText("Processos detectados no sistema")
             self.donuts["cpu"].set_value(cpu, f"{cpu:.0f}%", "Uso do processador")
             self.donuts["memory"].set_value(
                 memory.percent, f"{memory.percent:.0f}%", f"{ram_used:.1f} / {ram_total:.1f} GB"
