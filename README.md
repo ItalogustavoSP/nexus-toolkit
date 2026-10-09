@@ -7,7 +7,8 @@ Apresentar informações úteis sobre o sistema.
 Monitorar recursos e processos do computador.
 Analisar o uso do armazenamento.
 Identificar arquivos duplicados.
-Oferecer ferramentas de limpeza com confirmação explícita.
+Exibir indicadores do sistema e gráficos de utilização em tempo real.
+Oferecer ferramentas de diagnóstico com confirmação explícita.
 Gerar relatórios de diagnóstico.
 Manter uma arquitetura modular e preparada para futuras extensões.
 Princípios do projeto
