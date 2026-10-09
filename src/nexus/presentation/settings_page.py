@@ -178,11 +178,12 @@ class SettingsPage(QWidget):
         self.system_details.setTextInteractionFlags(
             Qt.TextInteractionFlag.TextSelectableByMouse
         )
+        logical_cpus = psutil.cpu_count(logical=True) or "Não identificado"
         self.system_details.setText(
             f"Sistema operacional: {platform.system()} {platform.release()}\n"
             f"Versão do sistema: {platform.version()}\n"
             f"Arquitetura: {platform.machine()}\n"
-            f"Processador lógico: {psutil.cpu_count(logical=True) or 'Não identificado'}\n"
+            f"Processador lógico: {logical_cpus}\n"
             f"Memória RAM: {psutil.virtual_memory().total / (1024 ** 3):.1f} GB\n"
             f"Python: {platform.python_version()}\n"
             f"Qt / PySide6: {PySide6.__version__}\n"
