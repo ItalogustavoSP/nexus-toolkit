@@ -7,9 +7,9 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QStackedWidget,
-    QMessageBox,
     QVBoxLayout,
     QWidget,
 )
@@ -260,7 +260,7 @@ class MainWindow(QMainWindow):
             layout.addWidget(button)
 
         self.nav_group.idClicked.connect(self.pages.setCurrentIndex)
-        self.nav_group.button(0).setChecked(True)
+        self.nav_group.button(self.pages.currentIndex()).setChecked(True)
         layout.addStretch()
 
         separator = QFrame()
