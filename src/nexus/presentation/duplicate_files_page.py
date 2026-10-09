@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import hashlib
 import os
 import threading
@@ -229,6 +230,11 @@ class DuplicateFilesPage(QWidget):
         self.cancel_button.setEnabled(False)
         self.cancel_button.clicked.connect(self.cancel_scan)
         scan_actions.addWidget(self.cancel_button)
+        self.export_button = QPushButton("Exportar CSV")
+        self.export_button.setObjectName("secondaryButton")
+        self.export_button.setEnabled(False)
+        self.export_button.clicked.connect(self.export_results)
+        scan_actions.addWidget(self.export_button)
         scan_actions.addStretch()
         layout.addLayout(scan_actions)
 
@@ -323,6 +329,7 @@ class DuplicateFilesPage(QWidget):
         self._records = records
         self.table.setRowCount(len(records))
         wasted_bytes = 0
+        counted_groups: set[int] = set()
         for row_index, record in enumerate(records):
             size = int(record["size"])
             values = [
@@ -339,12 +346,13 @@ class DuplicateFilesPage(QWidget):
                         Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
                     )
                 self.table.setItem(row_index, column, item)
-            if int(record["group"]) not in {
-                int(existing["group"]) for existing in records[:row_index]
-            }:
+            group_id = int(record["group"])
+            if group_id not in counted_groups:
                 wasted_bytes += size * (int(record["copies"]) - 1)
+                counted_groups.add(group_id)
 
         groups = len({int(record["group"]) for record in records})
+        self.export_button.setEnabled(bool(records))
         prefix = "Análise cancelada" if canceled else "Análise concluída"
         self.summary.setText(
             f"{prefix}: {groups} grupos, {len(records)} arquivos identificados; "
@@ -359,3 +367,55 @@ class DuplicateFilesPage(QWidget):
         self._scan_thread = None
         if thread is not None:
             thread.deleteLater()
+
+    def export_results(self) -> None:
+        """Export discovered duplicate paths to a CSV chosen by the user."""
+        if not self._records:
+            return
+        path, _selected_filter = QFileDialog.getSaveFileName(
+            self,
+            "Exportar resultados",
+            "nexus-arquivos-duplicados.csv",
+            "Arquivo CSV (*.csv)",
+        )
+        if not path:
+            return
+        if not path.lower().endswith(".csv"):
+            path += ".csv"
+        try:
+            with open(path, "w", newline="", encoding="utf-8-sig") as csv_file:
+                writer = csv.writer(csv_file, delimiter=";")
+                writer.writerow(
+                    ["Grupo", "Arquivo", "Caminho", "Tamanho em bytes", "Cópias", "SHA-256"]
+                )
+                for record in self._records:
+                    writer.writerow(
+                        [
+                            record["group"],
+                            record["name"],
+                            record["path"],
+                            record["size"],
+                            record["copies"],
+                            record["hash"],
+                        ]
+                    )
+        except OSError as error:
+            QMessageBox.warning(
+                self,
+                "Falha ao exportar",
+                f"Não foi possível salvar o CSV.\\n\\n{error}",
+            )
+            return
+        QMessageBox.information(
+            self,
+            "Resultados exportados",
+            f"A lista foi salva em:\\n{path}",
+        )
+
+    def closeEvent(self, event: object) -> None:
+        """Stop a background scan before this page is destroyed."""
+        thread = self._scan_thread
+        if thread is not None and thread.isRunning():
+            thread.cancel()
+            thread.wait()
+        super().closeEvent(event)
