@@ -278,100 +278,10 @@ class MainWindow(QMainWindow):
         return sidebar
 
     def _build_dashboard(self) -> QWidget:
-        page = QWidget()
-        layout = QVBoxLayout(page)
-        layout.setContentsMargins(34, 30, 34, 30)
-        layout.setSpacing(22)
+        return DashboardPage(self._navigate_to_page)
 
-        header = QHBoxLayout()
-        heading = QVBoxLayout()
-        title = QLabel("Visão geral")
-        title.setObjectName("pageTitle")
-        description = QLabel("Seu centro de diagnóstico e manutenção do Windows.")
-        description.setObjectName("muted")
-        heading.addWidget(title)
-        heading.addWidget(description)
-        header.addLayout(heading)
-        header.addStretch()
-
-        status = QLabel("●  VERSÃO INICIAL")
-        status.setStyleSheet(
-            "color: #b7a8ff; background: #25213c; padding: 9px 12px;"
-            "border-radius: 8px;"
-        )
-        header.addWidget(status, alignment=Qt.AlignmentFlag.AlignTop)
-        layout.addLayout(header)
-
-        hero = QFrame()
-        hero.setObjectName("hero")
-        hero_layout = QVBoxLayout(hero)
-        hero_layout.setContentsMargins(25, 24, 25, 24)
-        hero_layout.setSpacing(12)
-
-        hero_title = QLabel("Bem-vindo ao Nexus Toolkit")
-        hero_title.setObjectName("heroTitle")
-        hero_description = QLabel(
-            "Uma central de ferramentas para conhecer melhor seu computador, "
-            "analisar recursos e realizar manutenções com mais controle e segurança."
-        )
-        hero_description.setObjectName("muted")
-        hero_description.setWordWrap(True)
-        explore = QPushButton("Explorar módulos")
-        explore.setObjectName("primaryButton")
-        explore.setCursor(Qt.CursorShape.PointingHandCursor)
-        explore.clicked.connect(lambda: self.nav_group.button(1).click())
-        hero_layout.addWidget(hero_title)
-        hero_layout.addWidget(hero_description)
-        hero_layout.addSpacing(5)
-        hero_layout.addWidget(explore, alignment=Qt.AlignmentFlag.AlignLeft)
-        layout.addWidget(hero)
-
-        section_title = QLabel("Visão do projeto")
-        section_title.setObjectName("cardTitle")
-        layout.addWidget(section_title)
-
-        cards_layout = QHBoxLayout()
-        cards_layout.setSpacing(14)
-        cards = [
-            ("Módulos planejados", "06", "Áreas de ferramentas"),
-            ("Execução", "Local", "Foco em privacidade"),
-            ("Infraestrutura", "Modular", "Preparada para crescer"),
-        ]
-        for card_title, value, detail in cards:
-            cards_layout.addWidget(self._make_card(card_title, value, detail))
-        layout.addLayout(cards_layout)
-
-        notice = QLabel(
-            "Monitoramento, processos, armazenamento, busca de duplicados e relatórios "
-            "já possuem funções iniciais. As ferramentas de análise são somente leitura; "
-            "as configurações avançadas serão implementadas na próxima etapa."
-        )
-        notice.setObjectName("muted")
-        notice.setWordWrap(True)
-        layout.addWidget(notice)
-        layout.addStretch()
-        return page
-
-    @staticmethod
-    def _make_card(title_text: str, value: str, detail: str) -> QFrame:
-        card = QFrame()
-        card.setObjectName("card")
-        card.setMinimumHeight(145)
-        layout = QVBoxLayout(card)
-        layout.setContentsMargins(18, 18, 18, 18)
-        layout.setSpacing(10)
-
-        title = QLabel(title_text)
-        title.setObjectName("cardTitle")
-        value_label = QLabel(value)
-        value_label.setObjectName("cardValue")
-        detail_label = QLabel(detail)
-        detail_label.setObjectName("muted")
-        layout.addWidget(title)
-        layout.addWidget(value_label)
-        layout.addWidget(detail_label)
-        layout.addStretch()
-        return card
+    def _navigate_to_page(self, index: int) -> None:
+        self.nav_group.button(index).click()
 
     @staticmethod
     def _build_placeholder(title_text: str, description_text: str) -> QWidget:
