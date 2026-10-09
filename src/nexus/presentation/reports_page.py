@@ -25,29 +25,6 @@ class ReportsPage(QWidget):
         super().__init__()
         self.setObjectName("reportsPage")
         self._report_text = ""
-        self.setStyleSheet(
-            """
-            QLabel#pageTitle { font-size: 27px; font-weight: 700; }
-            QLabel#muted { color: #9ba4b8; }
-            QFrame#panel {
-                background: #191e2b; border: 1px solid #2c3345; border-radius: 13px;
-            }
-            QTextEdit {
-                background: #10131b; color: #edf0f7; border: 1px solid #343b50;
-                border-radius: 8px; padding: 12px;
-                selection-background-color: #39345f;
-            }
-            QPushButton#primaryButton {
-                background: #8874ed; color: #ffffff; border: none;
-                border-radius: 8px; padding: 10px 15px; font-weight: 600;
-            }
-            QPushButton#primaryButton:hover { background: #9a88f5; }
-            QPushButton#secondaryButton {
-                background: #252b3b; color: #edf0f7; border: 1px solid #343b50;
-                border-radius: 8px; padding: 10px 15px;
-            }
-            """
-        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(34, 30, 34, 30)
