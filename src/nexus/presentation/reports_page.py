@@ -33,7 +33,7 @@ class ReportsPage(QWidget):
         title = QLabel("Relatórios")
         title.setObjectName("pageTitle")
         description = QLabel(
-            "Gere um resumo local de diagnóstico para consultar ou guardar " 
+            "Gere um resumo local de diagnóstico para consultar ou guardar "
             "como arquivo."
         )
         description.setObjectName("muted")
@@ -101,7 +101,7 @@ class ReportsPage(QWidget):
                         f"Dispositivo: {partition.device or 'Não identificado'}",
                         f"Sistema de arquivos: {partition.fstype or 'Desconhecido'}",
                         f"Total: {disk.total / (1024 ** 3):.2f} GB",
-                        f"Usado: {disk.used / (1024 ** 3):.2f} GB " 
+                        f"Usado: {disk.used / (1024 ** 3):.2f} GB "
                         f"({disk.percent:.1f}%)",
                         f"Livre: {disk.free / (1024 ** 3):.2f} GB",
                         "",
@@ -135,7 +135,7 @@ class ReportsPage(QWidget):
                 f"Modelo: {processor}",
                 f"Processadores lógicos: {psutil.cpu_count(logical=True) or 0}",
                 f"Uso aproximado da CPU: {cpu_percent:.1f}%",
-                f"Tempo desde a inicialização: {days} dias, {hours} horas " 
+                f"Tempo desde a inicialização: {days} dias, {hours} horas "
                 f"e {minutes} minutos",
                 "",
                 "MEMÓRIA RAM",
