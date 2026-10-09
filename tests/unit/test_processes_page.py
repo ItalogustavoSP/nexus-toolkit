@@ -11,6 +11,7 @@ def test_processes_page_loads_process_information() -> None:
     assert page.table.columnCount() == 5
     assert page.table.rowCount() > 0
     assert "processos exibidos" in page.summary.text()
+    assert "Memória dos processos exibidos" in page.summary.text()
 
     page.close()
     app.processEvents()
