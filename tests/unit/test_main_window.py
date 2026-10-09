@@ -8,8 +8,8 @@ def test_main_window_builds_all_navigation_pages() -> None:
     window = MainWindow()
 
     assert window.windowTitle() == "Nexus Toolkit"
-    assert window.pages.count() == 7
-    assert len(window.nav_group.buttons()) == 7
+    assert window.pages.count() == 8
+    assert len(window.nav_group.buttons()) == 8
 
     window.close()
     app.processEvents()
