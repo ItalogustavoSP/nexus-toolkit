@@ -162,7 +162,9 @@ class DashboardPage(QWidget):
         self.system_info = QLabel("Carregando dados locais…")
         self.system_info.setObjectName("muted")
         self.system_info.setWordWrap(True)
-        self.system_info.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.system_info.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextSelectableByMouse
+        )
         system_layout.addWidget(system_title)
         system_layout.addWidget(self.system_info)
         bottom.addWidget(system_panel, 3)
@@ -180,7 +182,9 @@ class DashboardPage(QWidget):
             action = QPushButton(label + "  ↗")
             action.setObjectName("quickActionButton")
             action.setCursor(Qt.CursorShape.PointingHandCursor)
-            action.clicked.connect(lambda checked=False, page=index: self.open_page(page))
+            action.clicked.connect(
+                lambda checked=False, page=index: self.open_page(page)
+            )
             actions_layout.addWidget(action)
         bottom.addWidget(actions_panel, 2)
         layout.addLayout(bottom)
@@ -212,22 +216,34 @@ class DashboardPage(QWidget):
             ]:
                 self.metrics[key].setText(value)
             self.metric_details["cpu"].setText("Uso atual do processador")
-            self.metric_details["memory"].setText(f"{ram_used:.1f} de {ram_total:.1f} GB em uso")
-            self.metric_details["disk"].setText(f"{disk.free / (1024 ** 3):.1f} GB livres")
+            self.metric_details["memory"].setText(
+                f"{ram_used:.1f} de {ram_total:.1f} GB em uso"
+            )
+            self.metric_details["disk"].setText(
+                f"{disk.free / (1024 ** 3):.1f} GB livres"
+            )
             self.metric_details["processes"].setText("Processos detectados no sistema")
             self.donuts["cpu"].set_value(cpu, f"{cpu:.0f}%", "Uso do processador")
             self.donuts["memory"].set_value(
-                memory.percent, f"{memory.percent:.0f}%", f"{ram_used:.1f} / {ram_total:.1f} GB"
+                memory.percent,
+                f"{memory.percent:.0f}%",
+                f"{ram_used:.1f} / {ram_total:.1f} GB",
             )
             self.donuts["disk"].set_value(
-                disk_percent, f"{disk_percent:.0f}%", f"{disk_used:.0f} / {disk_total:.0f} GB"
+                disk_percent,
+                f"{disk_percent:.0f}%",
+                f"{disk_used:.0f} / {disk_total:.0f} GB",
             )
-            self.bars.set_values([("CPU", cpu), ("RAM", memory.percent), ("Disco", disk_percent)])
+            self.bars.set_values(
+                [("CPU", cpu), ("RAM", memory.percent), ("Disco", disk_percent)]
+            )
             uptime = max(0, int(datetime.now().timestamp() - psutil.boot_time()))
             hours, minutes = divmod(uptime // 60, 60)
             days, hours = divmod(hours, 24)
             uptime_text = f"{days}d {hours}h" if days else f"{hours}h {minutes}min"
-            processor = platform.processor().strip() or f"{psutil.cpu_count() or 0} CPUs lógicas"
+            processor = platform.processor().strip() or (
+                f"{psutil.cpu_count() or 0} CPUs lógicas"
+            )
             self.system_info.setText(
                 f"Sistema: {platform.system()} {platform.release()}\n"
                 f"Arquitetura: {platform.machine()}\n"
@@ -240,4 +256,6 @@ class DashboardPage(QWidget):
             self.status.setText("● MONITORAMENTO ATIVO")
         except (OSError, RuntimeError, ValueError) as error:
             self.status.setText("● DADOS PARCIAIS")
-            self.system_info.setText(f"Não foi possível ler todos os dados locais.\n{error}")
+            self.system_info.setText(
+                f"Não foi possível ler todos os dados locais.\n{error}"
+            )
