@@ -24,22 +24,6 @@ class MonitoringPage(QWidget):
     def __init__(self) -> None:
         super().__init__()
         self.setObjectName("monitoringPage")
-        self.setStyleSheet(
-            """
-            QLabel#pageTitle { font-size: 27px; font-weight: 700; }
-            QLabel#muted { color: #9ba4b8; }
-            QLabel#metricValue { font-size: 24px; font-weight: 700; color: #b7a8ff; }
-            QLabel#metricTitle { font-size: 14px; font-weight: 600; }
-            QFrame#metricCard {
-                background: #191e2b; border: 1px solid #2c3345; border-radius: 13px;
-            }
-            QPushButton#primaryButton {
-                background: #8874ed; color: #ffffff; border: none;
-                border-radius: 8px; padding: 10px 15px; font-weight: 600;
-            }
-            QPushButton#primaryButton:hover { background: #9a88f5; }
-            """
-        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(34, 30, 34, 30)
