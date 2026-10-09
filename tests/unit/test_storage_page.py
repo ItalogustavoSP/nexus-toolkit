@@ -8,9 +8,24 @@ def test_storage_page_loads_accessible_volumes() -> None:
     app = QApplication.instance() or QApplication([])
     page = StoragePage()
 
-    assert page.table.columnCount() == 6
+    assert page.table.columnCount() == 7
+    assert page.table.horizontalHeaderItem(6).text() == "Uso (%)"
     assert page.summary.text()
     assert page.table.rowCount() == len(page._rows)
+
+    page.close()
+    app.processEvents()
+
+
+def test_storage_usage_percentage_is_displayed() -> None:
+    app = QApplication.instance() or QApplication([])
+    page = StoragePage()
+
+    if page._rows:
+        for row_index, volume in enumerate(page._rows):
+            displayed = page.table.item(row_index, 6).text()
+            assert displayed.endswith("%")
+            assert displayed == f'{float(volume["percent"]):.1f}%'
 
     page.close()
     app.processEvents()
