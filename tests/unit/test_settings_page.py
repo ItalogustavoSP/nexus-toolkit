@@ -47,6 +47,23 @@ def test_settings_are_connected_to_main_window_theme() -> None:
     app.processEvents()
 
 
+def test_settings_page_shows_developer_and_system_information() -> None:
+    app = _app()
+    page = SettingsPage()
+
+    assert page.developer_label.text() == "Desenvolvido por Italo Gustavo"
+    assert "Versão do aplicativo: 0.1.0" in page.version_label.text()
+    details = page.system_details.text()
+    assert "Sistema operacional:" in details
+    assert "Arquitetura:" in details
+    assert "Memória RAM:" in details
+    assert "Python:" in details
+    assert "Qt / PySide6:" in details
+
+    page.close()
+    app.processEvents()
+
+
 def test_settings_page_has_export_import_and_reset_actions() -> None:
     app = _app()
     page = SettingsPage()
