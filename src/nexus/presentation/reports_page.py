@@ -78,45 +78,66 @@ class ReportsPage(QWidget):
         self.generate_report()
 
     def generate_report(self) -> None:
-        """Collect basic machine metrics into a readable report."""
+        """Collect a local system diagnostic report, including accessible drives."""
         try:
             memory = psutil.virtual_memory()
-            partitions = psutil.disk_partitions(all=False)
-            disk_partition = partitions[0] if partitions else None
-            disk = psutil.disk_usage(disk_partition.mountpoint) if disk_partition else None
             processes = list(psutil.process_iter(attrs=["pid", "name"]))
             cpu_percent = psutil.cpu_percent(interval=0.1)
+            disk_lines: list[str] = []
+            seen_mountpoints: set[str] = set()
+            for partition in psutil.disk_partitions(all=False):
+                mountpoint = partition.mountpoint
+                if mountpoint in seen_mountpoints:
+                    continue
+                seen_mountpoints.add(mountpoint)
+                try:
+                    disk = psutil.disk_usage(mountpoint)
+                except OSError:
+                    continue
+                disk_lines.extend(
+                    [
+                        f"Unidade: {mountpoint}",
+                        f"Dispositivo: {partition.device or 'Não identificado'}",
+                        f"Sistema de arquivos: {partition.fstype or 'Desconhecido'}",
+                        f"Total: {disk.total / (1024 ** 3):.2f} GB",
+                        f"Usado: {disk.used / (1024 ** 3):.2f} GB ({disk.percent:.1f}%)",
+                        f"Livre: {disk.free / (1024 ** 3):.2f} GB",
+                        "",
+                    ]
+                )
+
+            uptime_seconds = max(0, int(datetime.now().timestamp() - psutil.boot_time()))
+            days, remainder = divmod(uptime_seconds, 86400)
+            hours, remainder = divmod(remainder, 3600)
+            minutes = remainder // 60
+            processor = platform.processor().strip() or "Não identificado"
             report = [
                 "NEXUS TOOLKIT — RELATÓRIO DE DIAGNÓSTICO",
                 "=" * 46,
+                "Desenvolvido por: Italo Gustavo",
+                "Versão do aplicativo: 0.1.0",
                 f"Gerado em: {datetime.now().astimezone().strftime('%d/%m/%Y %H:%M:%S %Z')}",
                 "",
                 "SISTEMA",
                 f"Sistema operacional: {platform.system()} {platform.release()}",
+                f"Versão do sistema: {platform.version()}",
                 f"Arquitetura: {platform.machine()}",
                 f"Versão do Python: {platform.python_version()}",
                 "",
                 "PROCESSADOR",
+                f"Modelo: {processor}",
                 f"Processadores lógicos: {psutil.cpu_count(logical=True) or 0}",
                 f"Uso aproximado da CPU: {cpu_percent:.1f}%",
+                f"Tempo desde a inicialização: {days} dias, {hours} horas e {minutes} minutos",
                 "",
                 "MEMÓRIA RAM",
                 f"Uso: {memory.percent:.1f}%",
                 f"Em uso: {memory.used / (1024 ** 3):.2f} GB",
+                f"Disponível: {memory.available / (1024 ** 3):.2f} GB",
                 f"Total: {memory.total / (1024 ** 3):.2f} GB",
                 "",
-                "ARMAZENAMENTO (UNIDADE ACESSÍVEL PRINCIPAL)",
-                *(
-                    [
-                        f"Unidade: {disk_partition.mountpoint}",
-                        f"Total: {disk.total / (1024 ** 3):.2f} GB",
-                        f"Usado: {disk.used / (1024 ** 3):.2f} GB",
-                        f"Livre: {disk.free / (1024 ** 3):.2f} GB",
-                    ]
-                    if disk is not None and disk_partition is not None
-                    else ["Nenhuma unidade acessível foi identificada."]
-                ),
-                "",
+                "UNIDADES DE ARMAZENAMENTO",
+                *(disk_lines or ["Nenhuma unidade acessível foi identificada."]),
                 "PROCESSOS",
                 f"Quantidade observada: {len(processes)}",
                 "",
@@ -124,7 +145,7 @@ class ReportsPage(QWidget):
             ]
             self._report_text = "\n".join(report)
             self.preview.setPlainText(self._report_text)
-        except (OSError, RuntimeError, IndexError) as error:
+        except (OSError, RuntimeError, IndexError, ValueError) as error:
             QMessageBox.warning(
                 self,
                 "Não foi possível gerar o relatório",
