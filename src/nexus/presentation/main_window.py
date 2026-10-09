@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from nexus.presentation.monitoring_page import MonitoringPage
+from nexus.presentation.processes_page import ProcessesPage
 
 
 class MainWindow(QMainWindow):
@@ -49,6 +50,8 @@ class MainWindow(QMainWindow):
         for title, description in sections:
             if title == "Monitoramento":
                 self.pages.addWidget(MonitoringPage())
+            elif title == "Processos":
+                self.pages.addWidget(ProcessesPage())
             else:
                 self.pages.addWidget(self._build_placeholder(title, description))
 
