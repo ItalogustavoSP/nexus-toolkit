@@ -40,7 +40,11 @@ class DonutChart(QWidget):
         muted.setAlpha(45)
         painter.setPen(QPen(muted, 12, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
         painter.drawArc(rect, 0, 360 * 16)
-        painter.setPen(QPen(self.accent, 12, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+        painter.setPen(
+            QPen(
+                self.accent, 12, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap
+            )
+        )
         painter.drawArc(rect, 90 * 16, -int(self.percent * 3.6 * 16))
         painter.setPen(self.palette().color(self.foregroundRole()))
         font = QFont(self.font())
@@ -97,14 +101,23 @@ class UsageBarChart(QWidget):
             y = bottom - chart_height * tick / 100
             painter.drawLine(int(margin), int(y), int(self.width() - margin), int(y))
             painter.setFont(QFont(self.font().family(), 8))
-            painter.drawText(QRectF(0, y - 8, margin - 4, 16), Qt.AlignmentFlag.AlignRight, str(tick))
+            painter.drawText(
+                QRectF(0, y - 8, margin - 4, 16),
+                Qt.AlignmentFlag.AlignRight,
+                str(tick),
+            )
         count = max(1, len(self.values))
         slot = chart_width / count
         bar_width = min(48.0, slot * 0.48)
         for index, (name, value) in enumerate(self.values):
             center = margin + slot * (index + 0.5)
             bar_height = chart_height * value / 100
-            bar_rect = QRectF(center - bar_width / 2, bottom - bar_height, bar_width, bar_height)
+            bar_rect = QRectF(
+                center - bar_width / 2,
+                bottom - bar_height,
+                bar_width,
+                bar_height,
+            )
             painter.setPen(Qt.PenStyle.NoPen)
             painter.setBrush(QBrush(colors[index % len(colors)]))
             painter.drawRoundedRect(bar_rect, 6, 6)
