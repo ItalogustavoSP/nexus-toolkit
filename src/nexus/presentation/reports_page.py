@@ -33,7 +33,8 @@ class ReportsPage(QWidget):
         title = QLabel("Relatórios")
         title.setObjectName("pageTitle")
         description = QLabel(
-            "Gere um resumo local de diagnóstico para consultar ou guardar como arquivo."
+            "Gere um resumo local de diagnóstico para consultar ou guardar " 
+            "como arquivo."
         )
         description.setObjectName("muted")
         description.setWordWrap(True)
@@ -100,23 +101,29 @@ class ReportsPage(QWidget):
                         f"Dispositivo: {partition.device or 'Não identificado'}",
                         f"Sistema de arquivos: {partition.fstype or 'Desconhecido'}",
                         f"Total: {disk.total / (1024 ** 3):.2f} GB",
-                        f"Usado: {disk.used / (1024 ** 3):.2f} GB ({disk.percent:.1f}%)",
+                        f"Usado: {disk.used / (1024 ** 3):.2f} GB " 
+                        f"({disk.percent:.1f}%)",
                         f"Livre: {disk.free / (1024 ** 3):.2f} GB",
                         "",
                     ]
                 )
 
-            uptime_seconds = max(0, int(datetime.now().timestamp() - psutil.boot_time()))
+            uptime_seconds = max(
+                0, int(datetime.now().timestamp() - psutil.boot_time())
+            )
             days, remainder = divmod(uptime_seconds, 86400)
             hours, remainder = divmod(remainder, 3600)
             minutes = remainder // 60
             processor = platform.processor().strip() or "Não identificado"
+            generated_at = datetime.now().astimezone().strftime(
+                "%d/%m/%Y %H:%M:%S %Z"
+            )
             report = [
                 "NEXUS TOOLKIT — RELATÓRIO DE DIAGNÓSTICO",
                 "=" * 46,
                 "Desenvolvido por: Italo Gustavo",
                 "Versão do aplicativo: 0.1.0",
-                f"Gerado em: {datetime.now().astimezone().strftime('%d/%m/%Y %H:%M:%S %Z')}",
+                f"Gerado em: {generated_at}",
                 "",
                 "SISTEMA",
                 f"Sistema operacional: {platform.system()} {platform.release()}",
@@ -128,7 +135,8 @@ class ReportsPage(QWidget):
                 f"Modelo: {processor}",
                 f"Processadores lógicos: {psutil.cpu_count(logical=True) or 0}",
                 f"Uso aproximado da CPU: {cpu_percent:.1f}%",
-                f"Tempo desde a inicialização: {days} dias, {hours} horas e {minutes} minutos",
+                f"Tempo desde a inicialização: {days} dias, {hours} horas " 
+                f"e {minutes} minutos",
                 "",
                 "MEMÓRIA RAM",
                 f"Uso: {memory.percent:.1f}%",
@@ -149,7 +157,8 @@ class ReportsPage(QWidget):
             QMessageBox.warning(
                 self,
                 "Não foi possível gerar o relatório",
-                f"Algumas informações do sistema não puderam ser consultadas.\n\n{error}",
+                "Algumas informações do sistema não puderam ser consultadas.\n\n"
+                f"{error}",
             )
 
     def export_report(self) -> None:
