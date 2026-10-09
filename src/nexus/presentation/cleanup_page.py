@@ -172,6 +172,7 @@ class CleanupPage(QWidget):
             checkbox = QCheckBox()
             checkbox.setToolTip("Marque para incluir este arquivo na limpeza")
             checkbox.setAccessibleName(f"Selecionar {Path(item.path).name}")
+            checkbox.toggled.connect(self._update_selection_summary)
             self.table.setCellWidget(row, 0, checkbox)
             name_item = QTableWidgetItem(Path(item.path).name)
             name_item.setToolTip(item.path)
