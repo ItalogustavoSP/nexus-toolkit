@@ -8,8 +8,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Callable
 
-from PySide6.QtCore import QSettings, QThread, Qt, Signal
-from PySide6.QtGui import QCloseEvent
+from PySide6.QtCore import QSettings, QThread, Qt, QUrl, Signal
+from PySide6.QtGui import QCloseEvent, QDesktopServices
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -209,8 +209,24 @@ class DuplicateFilesPage(QWidget):
         self.export_button.setEnabled(False)
         self.export_button.clicked.connect(self.export_results)
         scan_actions.addWidget(self.export_button)
+        self.open_location_button = QPushButton("Abrir localização")
+        self.open_location_button.setObjectName("secondaryButton")
+        self.open_location_button.setEnabled(False)
+        self.open_location_button.clicked.connect(self.open_selected_location)
+        scan_actions.addWidget(self.open_location_button)
         scan_actions.addStretch()
         layout.addLayout(scan_actions)
+
+        self.selection_details = QLabel(
+            "Selecione um arquivo na tabela para ver os detalhes."
+        )
+        self.selection_details.setObjectName("muted")
+        self.selection_details.setWordWrap(True)
+        self.selection_details.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextSelectableByMouse
+        )
+        self.selection_details.setMinimumHeight(48)
+        layout.addWidget(self.selection_details)
 
         results_panel = QFrame()
         results_panel.setObjectName("panel")
@@ -238,6 +254,7 @@ class DuplicateFilesPage(QWidget):
             self.table.horizontalHeader().setSectionResizeMode(
                 column, QHeaderView.ResizeMode.ResizeToContents
             )
+        self.table.itemSelectionChanged.connect(self._show_selected_details)
         results_layout.addWidget(self.table, 1)
         layout.addWidget(results_panel, 1)
 
@@ -249,6 +266,51 @@ class DuplicateFilesPage(QWidget):
         note.setObjectName("muted")
         note.setWordWrap(True)
         layout.addWidget(note)
+
+    def _show_selected_details(self) -> None:
+        """Show the selected duplicate's metadata without changing the file."""
+        row = self.table.currentRow()
+        valid = 0 <= row < len(self._records)
+        self.open_location_button.setEnabled(valid)
+        if not valid:
+            self.selection_details.setText(
+                "Selecione um arquivo na tabela para ver os detalhes."
+            )
+            return
+        record = self._records[row]
+        path = Path(str(record["path"]))
+        try:
+            modified = path.stat().st_mtime
+            from datetime import datetime
+
+            modified_text = datetime.fromtimestamp(modified).strftime(
+                "%d/%m/%Y %H:%M:%S"
+            )
+        except OSError:
+            modified_text = "Indisponível"
+        self.selection_details.setText(
+            f"Arquivo selecionado: {record['name']}  ·  "
+            f"Grupo {record['group']}  ·  {record['copies']} cópias\\n"
+            f"Tamanho: {_format_size(int(record['size']))}  ·  "
+            f"Modificado: {modified_text}\\n"
+            f"Caminho: {record['path']}\\n"
+            f"SHA-256: {record['hash']}"
+        )
+
+    def open_selected_location(self) -> None:
+        """Open the selected file's containing folder in the system file manager."""
+        row = self.table.currentRow()
+        if not 0 <= row < len(self._records):
+            return
+        path = Path(str(self._records[row]["path"]))
+        if not path.exists():
+            QMessageBox.warning(
+                self,
+                "Arquivo indisponível",
+                "Este arquivo não está mais disponível no caminho analisado.",
+            )
+            return
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(path.parent)))
 
     def add_folder(self) -> None:
         folder = QFileDialog.getExistingDirectory(self, "Escolher pasta para analisar")
