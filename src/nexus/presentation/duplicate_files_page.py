@@ -5,11 +5,11 @@ import hashlib
 import os
 import threading
 from collections import defaultdict
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Callable
 
-from PySide6.QtCore import QSettings, QThread, Qt, QUrl, Signal
+from PySide6.QtCore import QSettings, Qt, QThread, QUrl, Signal
 from PySide6.QtGui import QCloseEvent, QDesktopServices
 from PySide6.QtWidgets import (
     QApplication,
