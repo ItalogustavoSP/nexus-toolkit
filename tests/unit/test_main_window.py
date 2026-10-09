@@ -1,7 +1,3 @@
-import os
-
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-
 from PySide6.QtWidgets import QApplication
 
 from nexus.presentation.main_window import MainWindow
@@ -13,7 +9,7 @@ def test_main_window_builds_all_navigation_pages() -> None:
 
     assert window.windowTitle() == "Nexus Toolkit"
     assert window.pages.count() == 7
-    assert window.nav_group.buttons().__len__() == 7
+    assert len(window.nav_group.buttons()) == 7
 
     window.close()
     app.processEvents()
