@@ -12,7 +12,7 @@ Gerar relatórios de diagnóstico.
 Manter uma arquitetura modular e preparada para futuras extensões.
 Princípios do projeto
 Prioridade para execução local e funcionamento offline.
-Sem anúncios, cadastro obrigatório ou telemetria por padrão.
+Sem anúncios, login, contas ou telemetria por padrão.\nPreferências do aplicativo armazenadas localmente.
 Ações destrutivas protegidas por confirmação.
 Separação entre interface, regras de negócio e acesso ao sistema.
 Testes automatizados e documentação.
