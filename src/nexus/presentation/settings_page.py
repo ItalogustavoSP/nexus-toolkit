@@ -245,7 +245,12 @@ class SettingsPage(QWidget):
             max(0, self.accent_combo.findData(self.settings.value("accent", "violet")))
         )
         self.density_combo.setCurrentIndex(
-            max(0, self.density_combo.findData(self.settings.value("density", "standard")))
+            max(
+                0,
+                self.density_combo.findData(
+                    self.settings.value("density", "standard")
+                ),
+            )
         )
         self.sound_checkbox.setChecked(
             self.settings.value("sound_effects", False, type=bool)
@@ -349,7 +354,10 @@ class SettingsPage(QWidget):
             if not isinstance(imported, dict):
                 raise ValueError("O arquivo precisa conter um objeto JSON.")
             validated = dict(DEFAULTS)
-            if isinstance(imported.get("theme"), str) and imported["theme"] in {"dark", "light"}:
+            if (
+                isinstance(imported.get("theme"), str)
+                and imported["theme"] in {"dark", "light"}
+            ):
                 validated["theme"] = imported["theme"]
             if isinstance(imported.get("accent"), str) and imported["accent"] in {
                 "violet", "blue", "green", "orange", "pink"
@@ -362,7 +370,10 @@ class SettingsPage(QWidget):
             for key in ("sound_effects", "confirm_exit"):
                 if isinstance(imported.get(key), bool):
                     validated[key] = imported[key]
-            if isinstance(imported.get("startup_page"), int) and 0 <= imported["startup_page"] <= 6:
+            if (
+                isinstance(imported.get("startup_page"), int)
+                and 0 <= imported["startup_page"] <= 6
+            ):
                 validated["startup_page"] = imported["startup_page"]
         except (OSError, json.JSONDecodeError, ValueError) as error:
             QMessageBox.warning(
