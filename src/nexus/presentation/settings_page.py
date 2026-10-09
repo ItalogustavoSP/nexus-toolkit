@@ -179,13 +179,13 @@ class SettingsPage(QWidget):
             Qt.TextInteractionFlag.TextSelectableByMouse
         )
         self.system_details.setText(
-            f"Sistema operacional: {platform.system()} {platform.release()}\\n"
-            f"Versão do sistema: {platform.version()}\\n"
-            f"Arquitetura: {platform.machine()}\\n"
-            f"Processador lógico: {psutil.cpu_count(logical=True) or 'Não identificado'}\\n"
-            f"Memória RAM: {psutil.virtual_memory().total / (1024 ** 3):.1f} GB\\n"
-            f"Python: {platform.python_version()}\\n"
-            f"Qt / PySide6: {PySide6.__version__}\\n"
+            f"Sistema operacional: {platform.system()} {platform.release()}\n"
+            f"Versão do sistema: {platform.version()}\n"
+            f"Arquitetura: {platform.machine()}\n"
+            f"Processador lógico: {psutil.cpu_count(logical=True) or 'Não identificado'}\n"
+            f"Memória RAM: {psutil.virtual_memory().total / (1024 ** 3):.1f} GB\n"
+            f"Python: {platform.python_version()}\n"
+            f"Qt / PySide6: {PySide6.__version__}\n"
             f"Executável: {Path(sys.executable).name}"
         )
         about_layout.addWidget(self.system_details)
