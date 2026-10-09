@@ -41,7 +41,8 @@ def classify_temporary_file(path: Path) -> tuple[str, str] | None:
         )
     return (
         "Revisar",
-        "Arquivo antigo em pasta temporária, mas o tipo/nome não confirma que é descartável",
+        "Arquivo antigo em pasta temporária, mas o tipo/nome não confirma "
+        "que é descartável",
     )
 
 
