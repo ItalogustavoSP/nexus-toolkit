@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QSettings, Qt
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (
     QButtonGroup,
     QFrame,
@@ -30,7 +31,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Nexus Toolkit")
         self.resize(1240, 800)
         self.setMinimumSize(900, 600)
-        self.preferences = QSettings()
+        self.preferences = QSettings("Nexus Toolkit", "Nexus Toolkit")
         self.apply_preferences(self._read_preferences())
 
         central = QWidget()
@@ -203,7 +204,7 @@ class MainWindow(QMainWindow):
         QToolTip {{ background: {panel}; color: {text}; border: 1px solid {border}; padding: 5px; }}
         """
 
-    def closeEvent(self, event) -> None:
+    def closeEvent(self, event: QCloseEvent) -> None:
         if self.preferences.value("confirm_exit", False, type=bool):
             answer = QMessageBox.question(
                 self,
