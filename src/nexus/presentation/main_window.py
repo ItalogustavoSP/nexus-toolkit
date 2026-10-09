@@ -51,7 +51,10 @@ class MainWindow(QMainWindow):
             ("Monitoramento", "Acompanhe o uso de recursos do computador."),
             ("Processos", "Consulte os processos em execução."),
             ("Armazenamento", "Analise discos, volumes e espaço disponível."),
-            ("Arquivos duplicados", "Localize cópias idênticas e exporte os resultados."),
+            (
+                "Arquivos duplicados",
+                "Localize cópias idênticas e exporte os resultados.",
+            ),
             ("Relatórios", "Consulte relatórios de diagnóstico do sistema."),
             ("Configurações", "Gerencie as preferências locais do aplicativo."),
         ]
@@ -155,11 +158,31 @@ class MainWindow(QMainWindow):
         QLabel#pageTitle {{ font-size: 27px; font-weight: 700; }}
         QLabel#heroTitle {{ font-size: 25px; font-weight: 700; color: {text}; }}
         QLabel#cardTitle, QLabel#sectionTitle {{ font-size: 15px; font-weight: 600; }}
-        QLabel#metricEyebrow {{ color: {muted}; font-size: 10px; font-weight: 700; letter-spacing: 1px; }}
-        QLabel#heroMonogram {{ color: {accent_text}; font-size: 25px; font-weight: 800; background: {selected}; border-radius: 16px; }}
-        QLabel#statusPill {{ color: {accent_text}; background: {selected}; padding: 9px 12px; border-radius: 8px; font-weight: 600; }}
-        QLabel#cardValue, QLabel#metricValue {{ font-size: 22px; font-weight: 700; color: {accent_text}; }}
-        QFrame#hero {{ background: {hero}; border: 1px solid {hero_border}; border-radius: 16px; }}
+                    QLabel#metricEyebrow {{ color: {muted};
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            }}
+                    QLabel#heroMonogram {{ color: {accent_text};
+            font-size: 25px;
+            font-weight: 800;
+            background: {selected};
+            border-radius: 16px;
+            }}
+                    QLabel#statusPill {{ color: {accent_text};
+            background: {selected};
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            }}
+                    QLabel#cardValue, QLabel#metricValue {{ font-size: 22px;
+            font-weight: 700;
+            color: {accent_text};
+            }}
+                    QFrame#hero {{ background: {hero};
+            border: 1px solid {hero_border};
+            border-radius: 16px;
+            }}
         QFrame#card, QFrame#panel, QFrame#metricCard, QFrame#settingsCard {{
             background: {panel}; border: 1px solid {border}; border-radius: 13px;
         }}
@@ -169,7 +192,9 @@ class MainWindow(QMainWindow):
         }}
         QPushButton#navButton:hover {{ background: {panel_alt}; color: {text}; }}
         QPushButton#navButton:checked {{
-            background: {selected}; color: {accent_text}; border-left: 3px solid {primary};
+                        background: {selected};
+            color: {accent_text};
+            border-left: 3px solid {primary};
             font-weight: 600;
         }}
         QPushButton#primaryButton {{
@@ -178,14 +203,26 @@ class MainWindow(QMainWindow):
         }}
         QPushButton#primaryButton:hover {{ background: {hover}; }}
         QPushButton#primaryButton:pressed {{ background: {primary}; }}
-        QPushButton#quickActionButton {{ text-align: left; background: {panel_alt}; color: {text}; border: 1px solid {border}; border-radius: 8px; padding: 9px 11px; }}
-        QPushButton#quickActionButton:hover {{ background: {selected}; border-color: {primary}; }}
-        QPushButton#quickActionButton:pressed {{ background: {selected}; padding-left: 14px; }}
+                    QPushButton#quickActionButton {{ text-align: left;
+            background: {panel_alt};
+            color: {text};
+            border: 1px solid {border};
+            border-radius: 8px;
+            padding: 9px 11px;
+            }}
+                    QPushButton#quickActionButton:hover {{ background: {selected};
+            border-color: {primary};
+            }}
+                    QPushButton#quickActionButton:pressed {{ background: {selected};
+            padding-left: 14px;
+            }}
         QPushButton#secondaryButton {{
             background: {panel_alt}; color: {text}; border: 1px solid {border};
             border-radius: 8px; padding: {padding};
         }}
-        QPushButton#secondaryButton:hover {{ border-color: {primary}; background: {selected}; }}
+                    QPushButton#secondaryButton:hover {{ border-color: {primary};
+            background: {selected};
+            }}
         QPushButton:disabled {{ color: {muted}; background: {panel_alt}; }}
         QLineEdit, QTextEdit, QPlainTextEdit, QComboBox {{
             background: {field}; color: {text}; border: 1px solid {border};
@@ -205,15 +242,30 @@ class MainWindow(QMainWindow):
         }}
         QCheckBox {{ spacing: 9px; }}
         QCheckBox::indicator {{ width: 17px; height: 17px; }}
-        QCheckBox::indicator:checked {{ background: {primary}; border: 1px solid {primary}; border-radius: 4px; }}
-        QCheckBox::indicator:unchecked {{ background: {field}; border: 1px solid {border}; border-radius: 4px; }}
+                    QCheckBox::indicator:checked {{ background: {primary};
+            border: 1px solid {primary};
+            border-radius: 4px;
+            }}
+                    QCheckBox::indicator:unchecked {{ background: {field};
+            border: 1px solid {border};
+            border-radius: 4px;
+            }}
         QScrollBar:vertical {{ background: {bg}; width: 10px; margin: 0; }}
-        QScrollBar::handle:vertical {{ background: {border}; border-radius: 5px; min-height: 24px; }}
-        QToolTip {{ background: {panel}; color: {text}; border: 1px solid {border}; padding: 5px; }}
+                    QScrollBar::handle:vertical {{ background: {border};
+            border-radius: 5px;
+            min-height: 24px;
+            }}
+                    QToolTip {{ background: {panel};
+            color: {text};
+            border: 1px solid {border};
+            padding: 5px;
+            }}
         """
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        if self.isVisible() and self.preferences.value("confirm_exit", False, type=bool):
+        if self.isVisible() and self.preferences.value(
+            "confirm_exit", False, type=bool
+        ):
             answer = QMessageBox.question(
                 self,
                 "Sair do Nexus Toolkit",
