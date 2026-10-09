@@ -13,6 +13,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from nexus.presentation.monitoring_page import MonitoringPage
+
 
 class MainWindow(QMainWindow):
     """Main application window for Nexus Toolkit."""
@@ -45,7 +47,10 @@ class MainWindow(QMainWindow):
             ("Configurações", "Gerencie as preferências locais do aplicativo."),
         ]
         for title, description in sections:
-            self.pages.addWidget(self._build_placeholder(title, description))
+            if title == "Monitoramento":
+                self.pages.addWidget(MonitoringPage())
+            else:
+                self.pages.addWidget(self._build_placeholder(title, description))
 
         root.addWidget(self._build_sidebar())
         root.addWidget(self.pages, 1)
