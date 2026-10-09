@@ -37,10 +37,10 @@ def test_settings_are_connected_to_main_window_theme() -> None:
     page = window.pages.widget(6)
 
     assert isinstance(page, SettingsPage)
-    assert "#10131b" in window.styleSheet()
+    assert "#101722" in window.styleSheet()
 
     page.theme_combo.setCurrentIndex(page.theme_combo.findData("light"))
-    assert "#f4f6fb" in window.styleSheet()
+    assert "#f3f5f9" in window.styleSheet()
 
     window.close()
     stored.clear()
