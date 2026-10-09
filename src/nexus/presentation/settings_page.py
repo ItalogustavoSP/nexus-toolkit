@@ -272,11 +272,15 @@ class SettingsPage(QWidget):
             if not isinstance(imported, dict):
                 raise ValueError("O arquivo precisa conter um objeto JSON.")
             validated = dict(DEFAULTS)
-            if imported.get("theme") in {"dark", "light"}:
+            if isinstance(imported.get("theme"), str) and imported["theme"] in {"dark", "light"}:
                 validated["theme"] = imported["theme"]
-            if imported.get("accent") in {"violet", "blue", "green", "orange", "pink"}:
+            if isinstance(imported.get("accent"), str) and imported["accent"] in {
+                "violet", "blue", "green", "orange", "pink"
+            }:
                 validated["accent"] = imported["accent"]
-            if imported.get("density") in {"compact", "standard", "large"}:
+            if isinstance(imported.get("density"), str) and imported["density"] in {
+                "compact", "standard", "large"
+            }:
                 validated["density"] = imported["density"]
             for key in ("sound_effects", "confirm_exit"):
                 if isinstance(imported.get(key), bool):
