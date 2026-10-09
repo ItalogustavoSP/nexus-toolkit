@@ -178,7 +178,9 @@ class MainWindow(QMainWindow):
             background: {panel}; color: {text}; border: 1px solid {border};
             border-radius: 9px; font-size: 20px; font-weight: 700;
         }}
-        QPushButton#menuToggle:hover {{ background: {selected}; border-color: {primary}; }}
+        QPushButton#menuToggle:hover {{
+            background: {selected}; border-color: {primary};
+        }}
         QLabel#muted {{ color: {muted}; }}
         QLabel#pageTitle {{ font-size: 27px; font-weight: 700; }}
         QLabel#heroTitle {{ font-size: 25px; font-weight: 700; color: {text}; }}
