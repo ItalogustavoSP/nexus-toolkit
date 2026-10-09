@@ -38,7 +38,7 @@ class SettingsPage(QWidget):
     def __init__(self) -> None:
         super().__init__()
         self.setObjectName("settingsPage")
-        self.settings = QSettings()
+        self.settings = QSettings("Nexus Toolkit", "Nexus Toolkit")
         root = QVBoxLayout(self)
         root.setContentsMargins(34, 30, 34, 30)
         root.setSpacing(18)
