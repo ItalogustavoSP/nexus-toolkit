@@ -205,7 +205,7 @@ class MainWindow(QMainWindow):
         """
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        if self.preferences.value("confirm_exit", False, type=bool):
+        if self.isVisible() and self.preferences.value("confirm_exit", False, type=bool):
             answer = QMessageBox.question(
                 self,
                 "Sair do Nexus Toolkit",
