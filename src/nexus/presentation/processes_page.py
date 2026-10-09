@@ -113,7 +113,11 @@ class ProcessesPage(QWidget):
                             ),
                         }
                     )
-                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                except (
+                    psutil.NoSuchProcess,
+                    psutil.AccessDenied,
+                    psutil.ZombieProcess,
+                ):
                     continue
         except (OSError, RuntimeError) as error:
             QMessageBox.warning(
