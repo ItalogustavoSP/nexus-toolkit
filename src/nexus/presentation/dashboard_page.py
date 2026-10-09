@@ -70,32 +70,22 @@ class DashboardPage(QWidget):
         header.addWidget(self.status, alignment=Qt.AlignmentFlag.AlignTop)
         layout.addLayout(header)
 
-        hero = QFrame()
-        hero.setObjectName("hero")
-        hero_layout = QHBoxLayout(hero)
-        hero_layout.setContentsMargins(22, 20, 22, 20)
-        welcome = QVBoxLayout()
-        hero_title = QLabel("Seu PC. Seus dados. Seu controle.")
-        hero_title.setObjectName("heroTitle")
-        hero_text = QLabel(
-            "Monitore o uso de recursos, acompanhe informações do sistema "
-            "e acesse ferramentas de diagnóstico sem sair do painel."
+        # Compact welcome strip leaves more room for live system indicators.
+        welcome_strip = QFrame()
+        welcome_strip.setObjectName("hero")
+        welcome_layout = QHBoxLayout(welcome_strip)
+        welcome_layout.setContentsMargins(18, 12, 18, 12)
+        welcome_text = QLabel(
+            "Visão geral do sistema  ·  Métricas atualizadas automaticamente"
         )
-        hero_text.setObjectName("muted")
-        hero_text.setWordWrap(True)
-        welcome.addWidget(hero_title)
-        welcome.addWidget(hero_text)
-        button = QPushButton("Abrir monitoramento  →")
-        button.setObjectName("primaryButton")
-        button.clicked.connect(lambda: self.open_page(1))
-        welcome.addWidget(button, alignment=Qt.AlignmentFlag.AlignLeft)
-        hero_layout.addLayout(welcome, 1)
-        monogram = QLabel("NEXUS\nTOOLKIT")
-        monogram.setObjectName("heroMonogram")
-        monogram.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        monogram.setMinimumWidth(130)
-        hero_layout.addWidget(monogram)
-        layout.addWidget(hero)
+        welcome_text.setObjectName("sectionTitle")
+        welcome_layout.addWidget(welcome_text)
+        welcome_layout.addStretch()
+        open_monitoring = QPushButton("Abrir monitoramento  →")
+        open_monitoring.setObjectName("primaryButton")
+        open_monitoring.clicked.connect(lambda: self.open_page(1))
+        welcome_layout.addWidget(open_monitoring)
+        layout.addWidget(welcome_strip)
 
         self.metrics: dict[str, QLabel] = {}
         self.metric_details: dict[str, QLabel] = {}
