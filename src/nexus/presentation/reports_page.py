@@ -104,7 +104,9 @@ class ReportsPage(QWidget):
         """Collect basic machine metrics into a readable report."""
         try:
             memory = psutil.virtual_memory()
-            disk = psutil.disk_usage(psutil.disk_partitions(all=False)[0].mountpoint)
+            partitions = psutil.disk_partitions(all=False)
+            disk_partition = partitions[0] if partitions else None
+            disk = psutil.disk_usage(disk_partition.mountpoint) if disk_partition else None
             processes = list(psutil.process_iter(attrs=["pid", "name"]))
             cpu_percent = psutil.cpu_percent(interval=0.1)
             report = [
@@ -127,10 +129,16 @@ class ReportsPage(QWidget):
                 f"Total: {memory.total / (1024 ** 3):.2f} GB",
                 "",
                 "ARMAZENAMENTO (UNIDADE ACESSÍVEL PRINCIPAL)",
-                f"Unidade: {psutil.disk_partitions(all=False)[0].mountpoint}",
-                f"Total: {disk.total / (1024 ** 3):.2f} GB",
-                f"Usado: {disk.used / (1024 ** 3):.2f} GB",
-                f"Livre: {disk.free / (1024 ** 3):.2f} GB",
+                *(
+                    [
+                        f"Unidade: {disk_partition.mountpoint}",
+                        f"Total: {disk.total / (1024 ** 3):.2f} GB",
+                        f"Usado: {disk.used / (1024 ** 3):.2f} GB",
+                        f"Livre: {disk.free / (1024 ** 3):.2f} GB",
+                    ]
+                    if disk is not None and disk_partition is not None
+                    else ["Nenhuma unidade acessível foi identificada."]
+                ),
                 "",
                 "PROCESSOS",
                 f"Quantidade observada: {len(processes)}",
