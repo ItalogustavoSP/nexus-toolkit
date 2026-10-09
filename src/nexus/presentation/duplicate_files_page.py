@@ -5,6 +5,7 @@ import hashlib
 import os
 import threading
 from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
@@ -281,8 +282,6 @@ class DuplicateFilesPage(QWidget):
         path = Path(str(record["path"]))
         try:
             modified = path.stat().st_mtime
-            from datetime import datetime
-
             modified_text = datetime.fromtimestamp(modified).strftime(
                 "%d/%m/%Y %H:%M:%S"
             )
@@ -290,10 +289,10 @@ class DuplicateFilesPage(QWidget):
             modified_text = "Indisponível"
         self.selection_details.setText(
             f"Arquivo selecionado: {record['name']}  ·  "
-            f"Grupo {record['group']}  ·  {record['copies']} cópias\\n"
+            f"Grupo {record['group']}  ·  {record['copies']} cópias\n"
             f"Tamanho: {_format_size(int(record['size']))}  ·  "
-            f"Modificado: {modified_text}\\n"
-            f"Caminho: {record['path']}\\n"
+            f"Modificado: {modified_text}\n"
+            f"Caminho: {record['path']}\n"
             f"SHA-256: {record['hash']}"
         )
 
@@ -448,13 +447,13 @@ class DuplicateFilesPage(QWidget):
             QMessageBox.warning(
                 self,
                 "Falha ao exportar",
-                f"Não foi possível salvar o CSV.\\n\\n{error}",
+                f"Não foi possível salvar o CSV.\n\n{error}",
             )
             return
         QMessageBox.information(
             self,
             "Resultados exportados",
-            f"A lista foi salva em:\\n{path}",
+            f"A lista foi salva em:\n{path}",
         )
 
     def closeEvent(self, event: QCloseEvent) -> None:
