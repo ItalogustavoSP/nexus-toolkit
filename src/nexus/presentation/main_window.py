@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from nexus.presentation.cleanup_page import CleanupPage
 from nexus.presentation.dashboard_page import DashboardPage
 from nexus.presentation.duplicate_files_page import DuplicateFilesPage
 from nexus.presentation.monitoring_page import MonitoringPage
@@ -74,6 +75,7 @@ class MainWindow(QMainWindow):
             ),
             ("Relatórios", "Consulte relatórios de diagnóstico do sistema."),
             ("Configurações", "Gerencie as preferências locais do aplicativo."),
+            ("Limpeza e otimização", "Analise e remova arquivos temporários antigos."),
         ]
         for title, description in sections:
             if title == "Monitoramento":
@@ -90,6 +92,8 @@ class MainWindow(QMainWindow):
                 settings_page = SettingsPage()
                 settings_page.settings_changed.connect(self.apply_preferences)
                 self.pages.addWidget(settings_page)
+            elif title == "Limpeza e otimização":
+                self.pages.addWidget(CleanupPage())
             else:
                 self.pages.addWidget(self._build_placeholder(title, description))
 
@@ -334,6 +338,7 @@ class MainWindow(QMainWindow):
             "Arquivos duplicados",
             "Relatórios",
             "Configurações",
+            "Limpeza e otimização",
         ]
         for index, name in enumerate(navigation):
             button = QPushButton(f"  {name}")
