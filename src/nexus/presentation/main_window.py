@@ -46,7 +46,7 @@ class MainWindow(QMainWindow):
             ("Monitoramento", "Acompanhe o uso de recursos do computador."),
             ("Processos", "Consulte os processos em execução."),
             ("Armazenamento", "Analise discos, volumes e espaço disponível."),
-            ("Arquivos duplicados", "Prepare verificações de arquivos duplicados."),
+            ("Arquivos duplicados", "Localize cópias idênticas e exporte os resultados."),
             ("Relatórios", "Consulte relatórios de diagnóstico do sistema."),
             ("Configurações", "Gerencie as preferências locais do aplicativo."),
         ]
@@ -229,9 +229,9 @@ class MainWindow(QMainWindow):
         layout.addLayout(cards_layout)
 
         notice = QLabel(
-            "O monitoramento já consulta informações básicas do computador em "
-            "modo somente leitura. Os demais módulos continuam em desenvolvimento; "
-            "nenhum arquivo ou configuração é alterado por esta tela."
+            "Monitoramento, processos, armazenamento, busca de duplicados e relatórios "
+            "já possuem funções iniciais. As ferramentas de análise são somente leitura; "
+            "as configurações avançadas serão implementadas na próxima etapa."
         )
         notice.setObjectName("muted")
         notice.setWordWrap(True)
