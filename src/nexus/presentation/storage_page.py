@@ -140,7 +140,7 @@ class StoragePage(QWidget):
             mountpoint = partition.mountpoint
             try:
                 usage = shutil.disk_usage(mountpoint)
-            except (OSError, PermissionError):
+            except OSError:
                 continue
             rows.append(
                 {
