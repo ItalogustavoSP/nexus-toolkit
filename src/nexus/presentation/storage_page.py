@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
+    QMessageBox,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
@@ -33,7 +34,7 @@ class StoragePage(QWidget):
         title = QLabel("Armazenamento")
         title.setObjectName("pageTitle")
         description = QLabel(
-            "Confira as unidades montadas, o sistema de arquivos e a capacidade disponível."
+            "Confira as unidades montadas, a capacidade total e o espaço disponível."
         )
         description.setObjectName("muted")
         description.setWordWrap(True)
@@ -42,7 +43,9 @@ class StoragePage(QWidget):
 
         toolbar = QHBoxLayout()
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Pesquisar por unidade, caminho ou sistema...")
+        self.search_input.setPlaceholderText(
+            "Pesquisar por unidade, caminho ou sistema..."
+        )
         self.search_input.setClearButtonEnabled(True)
         self.search_input.textChanged.connect(self._apply_filter)
         toolbar.addWidget(self.search_input, 1)
@@ -58,13 +61,23 @@ class StoragePage(QWidget):
         panel.setObjectName("panel")
         panel_layout = QVBoxLayout(panel)
         panel_layout.setContentsMargins(12, 12, 12, 12)
+        panel_layout.setSpacing(8)
         self.summary = QLabel("Consultando unidades...")
         self.summary.setObjectName("muted")
+        self.summary.setWordWrap(True)
         panel_layout.addWidget(self.summary)
 
-        self.table = QTableWidget(0, 6)
+        self.table = QTableWidget(0, 7)
         self.table.setHorizontalHeaderLabels(
-            ["Unidade / caminho", "Dispositivo", "Sistema de arquivos", "Total", "Usado", "Livre"]
+            [
+                "Unidade / caminho",
+                "Dispositivo",
+                "Sistema de arquivos",
+                "Total",
+                "Usado",
+                "Livre",
+                "Uso (%)",
+            ]
         )
         self.table.setAlternatingRowColors(True)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -77,7 +90,7 @@ class StoragePage(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch
         )
-        for column in (2, 3, 4, 5):
+        for column in (2, 3, 4, 5, 6):
             self.table.horizontalHeader().setSectionResizeMode(
                 column, QHeaderView.ResizeMode.ResizeToContents
             )
@@ -107,7 +120,19 @@ class StoragePage(QWidget):
     def refresh_volumes(self) -> None:
         """Read mounted volumes and skip drives that are unavailable."""
         rows: list[dict[str, str | int | float]] = []
-        for partition in psutil.disk_partitions(all=False):
+        try:
+            partitions = psutil.disk_partitions(all=False)
+        except (OSError, RuntimeError) as error:
+            QMessageBox.warning(
+                self,
+                "Falha ao consultar armazenamento",
+                f"Não foi possível listar as unidades.
+
+{error}",
+            )
+            return
+
+        for partition in partitions:
             mountpoint = partition.mountpoint
             try:
                 usage = shutil.disk_usage(mountpoint)
@@ -127,10 +152,6 @@ class StoragePage(QWidget):
 
         self._rows = sorted(rows, key=lambda row: str(row["mountpoint"]).casefold())
         self._apply_filter()
-        if not rows:
-            self.summary.setText(
-                "Nenhuma unidade acessível foi encontrada. Tente verificar novamente."
-            )
 
     def _apply_filter(self, _text: str = "") -> None:
         """Filter volume rows by mount point, device, or filesystem."""
@@ -146,10 +167,11 @@ class StoragePage(QWidget):
             values = [
                 str(volume["mountpoint"]),
                 str(volume["device"]),
-                f'{volume["filesystem"]} · {float(volume["percent"]):.1f}% usado',
+                str(volume["filesystem"]),
                 self._format_size(int(volume["total"])),
                 self._format_size(int(volume["used"])),
                 self._format_size(int(volume["free"])),
+                f'{float(volume["percent"]):.1f}%',
             ]
             for column, value in enumerate(values):
                 item = QTableWidgetItem(value)
@@ -158,6 +180,15 @@ class StoragePage(QWidget):
                         Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
                     )
                 self.table.setItem(row_index, column, item)
+
+        total_bytes = sum(int(row["total"]) for row in visible)
+        free_bytes = sum(int(row["free"]) for row in visible)
         self.summary.setText(
-            f"{len(visible)} de {len(self._rows)} unidades acessíveis exibidas"
+            f"{len(visible)} de {len(self._rows)} unidades exibidas · "
+            f"Capacidade exibida: {self._format_size(total_bytes)} · "
+            f"Espaço livre: {self._format_size(free_bytes)}"
         )
+        if not self._rows:
+            self.summary.setText(
+                "Nenhuma unidade acessível foi encontrada. Tente verificar novamente."
+            )
