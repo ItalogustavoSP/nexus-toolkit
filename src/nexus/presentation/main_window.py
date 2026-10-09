@@ -143,7 +143,7 @@ class MainWindow(QMainWindow):
         return f"""
         QMainWindow, QWidget#central, QWidget#monitoringPage,
         QWidget#processesPage, QWidget#storagePage, QWidget#reportsPage,
-        QWidget#duplicateFilesPage, QWidget#settingsPage,
+        QWidget#duplicateFilesPage, QWidget#settingsPage, QWidget#dashboardPage,
         QWidget#settingsContent, QScrollArea {{
             background: {bg}; color: {text}; font-family: "Segoe UI";
             font-size: {font_size}; border: none;
