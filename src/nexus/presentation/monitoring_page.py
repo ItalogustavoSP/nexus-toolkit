@@ -67,6 +67,10 @@ class MonitoringPage(QWidget):
         layout.addLayout(header)
 
         self.metric_values: dict[str, QLabel] = {}
+        self.cpu_detail: QLabel
+        self.memory_detail: QLabel
+        self.disk_detail: QLabel
+        self.system_detail: QLabel
         grid = QGridLayout()
         grid.setSpacing(14)
         metrics = [
@@ -91,7 +95,14 @@ class MonitoringPage(QWidget):
             detail.setObjectName("muted")
             detail.setWordWrap(True)
             self.metric_values[key] = value
-            setattr(self, f"{key}_detail", detail)
+            if key == "cpu":
+                self.cpu_detail = detail
+            elif key == "memory":
+                self.memory_detail = detail
+            elif key == "disk":
+                self.disk_detail = detail
+            else:
+                self.system_detail = detail
 
             card_layout.addWidget(label)
             card_layout.addWidget(value)
