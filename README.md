@@ -12,7 +12,8 @@ Gerar relatórios de diagnóstico.
 Manter uma arquitetura modular e preparada para futuras extensões.
 Princípios do projeto
 Prioridade para execução local e funcionamento offline.
-Sem anúncios, login, contas ou telemetria por padrão.\nPreferências do aplicativo armazenadas localmente.
+Sem anúncios, login, contas ou telemetria por padrão.
+Preferências do aplicativo armazenadas localmente.
 Ações destrutivas protegidas por confirmação.
 Separação entre interface, regras de negócio e acesso ao sistema.
 Testes automatizados e documentação.
@@ -20,6 +21,8 @@ Código organizado para facilitar contribuições.
 Tecnologias
 Python
 PySide6 / Qt
+psutil para métricas locais do sistema
+Gráficos nativos Qt, sem dependência de serviços externos
 SQLite, quando necessário para persistência local
 pytest
 Ruff
