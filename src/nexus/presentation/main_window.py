@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from nexus.presentation.duplicate_files_page import DuplicateFilesPage
 from nexus.presentation.monitoring_page import MonitoringPage
 from nexus.presentation.processes_page import ProcessesPage
 from nexus.presentation.reports_page import ReportsPage
@@ -56,6 +57,8 @@ class MainWindow(QMainWindow):
                 self.pages.addWidget(ProcessesPage())
             elif title == "Armazenamento":
                 self.pages.addWidget(StoragePage())
+            elif title == "Arquivos duplicados":
+                self.pages.addWidget(DuplicateFilesPage())
             elif title == "Relatórios":
                 self.pages.addWidget(ReportsPage())
             else:
