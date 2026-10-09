@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from PySide6.QtCore import QSettings, Qt
+from PySide6.QtCore import QSettings
 from PySide6.QtGui import QAction, QCloseEvent
 from PySide6.QtWidgets import (
     QFrame,
