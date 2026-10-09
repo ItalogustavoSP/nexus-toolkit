@@ -6,15 +6,16 @@ from typing import Any
 
 from PySide6.QtCore import QSettings, Signal
 from PySide6.QtWidgets import (
-    QFileDialog,
-    QFrame,
-    QFormLayout,
-    QHBoxLayout,
-    QLabel,
     QCheckBox,
     QComboBox,
+    QFileDialog,
+    QFormLayout,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
     QMessageBox,
     QPushButton,
+    QScrollArea,
     QVBoxLayout,
     QWidget,
 )
@@ -40,8 +41,17 @@ class SettingsPage(QWidget):
         self.setObjectName("settingsPage")
         self.settings = QSettings("Nexus Toolkit", "Nexus Toolkit")
         root = QVBoxLayout(self)
-        root.setContentsMargins(34, 30, 34, 30)
-        root.setSpacing(18)
+        root.setContentsMargins(0, 0, 0, 0)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        content = QWidget()
+        content.setObjectName("settingsContent")
+        layout = QVBoxLayout(content)
+        layout.setContentsMargins(34, 30, 34, 30)
+        layout.setSpacing(18)
+        scroll.setWidget(content)
+        root.addWidget(scroll)
 
         title = QLabel("Configurações")
         title.setObjectName("pageTitle")
@@ -155,7 +165,7 @@ class SettingsPage(QWidget):
         self.status_label = QLabel("Configurações aplicadas automaticamente.")
         self.status_label.setObjectName("muted")
         root.addWidget(self.status_label)
-        root.addStretch()
+        layout.addStretch()
 
         self._load_preferences()
         for control in (
