@@ -51,6 +51,7 @@ class CleanupPage(QWidget):
         super().__init__()
         self.setObjectName("cleanupPage")
         self._items: list[CleanupItem] = []
+        self._items_by_path: dict[str, CleanupItem] = {}
         self._selected_paths: set[str] = set()
         self._page_index = 0
         self._scan_errors = 0
@@ -95,7 +96,7 @@ class CleanupPage(QWidget):
         self.scan_button.setObjectName("primaryButton")
         self.scan_button.clicked.connect(self.start_scan)
         actions.addWidget(self.scan_button)
-        self.select_page_button = QPushButton("Selecionar página")
+        self.select_page_button = QPushButton("Selecionar baixo risco")
         self.select_page_button.setObjectName("secondaryButton")
         self.select_page_button.clicked.connect(self.select_current_page)
         self.select_page_button.setEnabled(False)
@@ -123,9 +124,9 @@ class CleanupPage(QWidget):
         self.summary.setWordWrap(True)
         panel_layout.addWidget(self.summary)
 
-        self.table = QTableWidget(0, 4)
+        self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(
-            ["Selecionar", "Arquivo", "Última modificação", "Tamanho"]
+            ["Selecionar", "Arquivo", "Risco", "Última modificação", "Tamanho"]
         )
         self.table.setAlternatingRowColors(True)
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -135,7 +136,7 @@ class CleanupPage(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch
         )
-        for column in (0, 2, 3):
+        for column in (0, 2, 3, 4):
             self.table.horizontalHeader().setSectionResizeMode(
                 column, QHeaderView.ResizeMode.ResizeToContents
             )
@@ -186,6 +187,7 @@ class CleanupPage(QWidget):
 
     def _on_scan_completed(self, items: list[CleanupItem], errors: int) -> None:
         self._items = items
+        self._items_by_path = {item.path: item for item in items}
         self._selected_paths.clear()
         self._page_index = 0
         self._scan_errors = errors
@@ -206,6 +208,7 @@ class CleanupPage(QWidget):
     def _render_page(self) -> None:
         start = self._page_index * PAGE_SIZE
         visible = self._items[start : start + PAGE_SIZE]
+        self.table.setUpdatesEnabled(False)
         self.table.blockSignals(True)
         self.table.setRowCount(len(visible))
         for row, item in enumerate(visible):
@@ -224,12 +227,16 @@ class CleanupPage(QWidget):
             name_item.setToolTip(item.path)
             name_item.setData(Qt.ItemDataRole.UserRole, item.path)
             self.table.setItem(row, 1, name_item)
+            risk_item = QTableWidgetItem(item.risk)
+            risk_item.setToolTip(item.reason)
+            self.table.setItem(row, 2, risk_item)
             modified = datetime.fromtimestamp(item.modified_at).strftime(
                 "%d/%m/%Y %H:%M"
             )
-            self.table.setItem(row, 2, QTableWidgetItem(modified))
-            self.table.setItem(row, 3, QTableWidgetItem(_format_size(item.size_bytes)))
+            self.table.setItem(row, 3, QTableWidgetItem(modified))
+            self.table.setItem(row, 4, QTableWidgetItem(_format_size(item.size_bytes)))
         self.table.blockSignals(False)
+        self.table.setUpdatesEnabled(True)
         pages = (len(self._items) + PAGE_SIZE - 1) // PAGE_SIZE
         self.page_label.setText(
             f"Página {self._page_index + 1 if pages else 0} de {pages} "
@@ -255,19 +262,25 @@ class CleanupPage(QWidget):
         self._update_summary()
 
     def _update_summary(self, prefix: str = "") -> None:
-        selected = [item for item in self._items if item.path in self._selected_paths]
+        selected_count = len(self._selected_paths)
+        selected_size = sum(
+            self._items_by_path[path].size_bytes
+            for path in self._selected_paths
+            if path in self._items_by_path
+        )
         base = (
-            f"{len(self._items)} candidatos · {len(selected)} selecionados · "
-            f"{_format_size(self._selected_size(selected))} selecionados para "
+            f"{len(self._items)} candidatos · {selected_count} selecionados · "
+            f"{_format_size(selected_size)} selecionados para "
             "revisão. Nenhum arquivo será removido sem confirmação."
         )
         self.summary.setText(f"{prefix}\n{base}" if prefix else base)
-        self.clean_button.setEnabled(bool(selected))
+        self.clean_button.setEnabled(selected_count > 0)
 
     def select_current_page(self) -> None:
         start = self._page_index * PAGE_SIZE
         for item in self._items[start : start + PAGE_SIZE]:
-            self._selected_paths.add(item.path)
+            if item.risk == "Baixo":
+                self._selected_paths.add(item.path)
         self._render_page()
         self._update_summary()
 
@@ -290,7 +303,9 @@ class CleanupPage(QWidget):
 
     def clean_selected(self) -> None:
         selected = [
-            item for item in self._items if item.path in self._selected_paths
+            self._items_by_path[path]
+            for path in self._selected_paths
+            if path in self._items_by_path
         ]
         if not selected:
             QMessageBox.information(
@@ -304,8 +319,9 @@ class CleanupPage(QWidget):
             "Confirmar limpeza",
             f"Remover {len(selected)} arquivos selecionados "
             f"({_format_size(total)})?\n\n"
-            "Esta ação não pode ser desfeita. Continue apenas se revisou "
-            "os caminhos e entende que esses arquivos podem ser removidos.",
+            "A seleção automática inclui apenas itens marcados como Baixo risco; "
+            "isso não é garantia de que estejam sem uso. Itens “Revisar” exigem "
+            "marcação manual. A ação não pode ser desfeita.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
