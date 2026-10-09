@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
 
 from nexus.presentation.monitoring_page import MonitoringPage
 from nexus.presentation.processes_page import ProcessesPage
+from nexus.presentation.reports_page import ReportsPage
 from nexus.presentation.storage_page import StoragePage
 
 
@@ -55,6 +56,8 @@ class MainWindow(QMainWindow):
                 self.pages.addWidget(ProcessesPage())
             elif title == "Armazenamento":
                 self.pages.addWidget(StoragePage())
+            elif title == "Relatórios":
+                self.pages.addWidget(ReportsPage())
             else:
                 self.pages.addWidget(self._build_placeholder(title, description))
 
