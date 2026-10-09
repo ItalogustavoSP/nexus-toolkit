@@ -229,6 +229,34 @@ class SettingsPage(QWidget):
         self.status_label.setText("Preferências salvas e aplicadas.")
         self.settings_changed.emit(preferences)
 
+    def _set_controls(self, preferences: dict[str, Any]) -> None:
+        controls = [
+            self.theme_combo,
+            self.accent_combo,
+            self.density_combo,
+            self.sound_checkbox,
+            self.confirm_exit_checkbox,
+            self.startup_combo,
+        ]
+        for control in controls:
+            control.blockSignals(True)
+        self.theme_combo.setCurrentIndex(
+            self.theme_combo.findData(preferences["theme"])
+        )
+        self.accent_combo.setCurrentIndex(
+            self.accent_combo.findData(preferences["accent"])
+        )
+        self.density_combo.setCurrentIndex(
+            self.density_combo.findData(preferences["density"])
+        )
+        self.sound_checkbox.setChecked(preferences["sound_effects"])
+        self.confirm_exit_checkbox.setChecked(preferences["confirm_exit"])
+        self.startup_combo.setCurrentIndex(
+            self.startup_combo.findData(preferences["startup_page"])
+        )
+        for control in controls:
+            control.blockSignals(False)
+
     def reset_settings(self) -> None:
         answer = QMessageBox.question(
             self,
@@ -239,16 +267,7 @@ class SettingsPage(QWidget):
         )
         if answer != QMessageBox.StandardButton.Yes:
             return
-        self.settings.blockSignals(True)
-        self.theme_combo.setCurrentIndex(self.theme_combo.findData(DEFAULTS["theme"]))
-        self.accent_combo.setCurrentIndex(self.accent_combo.findData(DEFAULTS["accent"]))
-        self.density_combo.setCurrentIndex(self.density_combo.findData(DEFAULTS["density"]))
-        self.sound_checkbox.setChecked(DEFAULTS["sound_effects"])
-        self.confirm_exit_checkbox.setChecked(DEFAULTS["confirm_exit"])
-        self.startup_combo.setCurrentIndex(
-            self.startup_combo.findData(DEFAULTS["startup_page"])
-        )
-        self.settings.blockSignals(False)
+        self._set_controls(DEFAULTS)
         self._save_and_emit()
         self.status_label.setText("Preferências padrão restauradas.")
 
@@ -304,13 +323,6 @@ class SettingsPage(QWidget):
             )
             return
 
-        self.theme_combo.setCurrentIndex(self.theme_combo.findData(validated["theme"]))
-        self.accent_combo.setCurrentIndex(self.accent_combo.findData(validated["accent"]))
-        self.density_combo.setCurrentIndex(self.density_combo.findData(validated["density"]))
-        self.sound_checkbox.setChecked(validated["sound_effects"])
-        self.confirm_exit_checkbox.setChecked(validated["confirm_exit"])
-        self.startup_combo.setCurrentIndex(
-            self.startup_combo.findData(validated["startup_page"])
-        )
+        self._set_controls(validated)
         self._save_and_emit()
         self.status_label.setText("Configurações importadas e aplicadas.")
