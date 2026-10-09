@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from nexus.presentation.dashboard_page import DashboardPage
 from nexus.presentation.duplicate_files_page import DuplicateFilesPage
 from nexus.presentation.monitoring_page import MonitoringPage
 from nexus.presentation.processes_page import ProcessesPage
