@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Callable
 
 from PySide6.QtCore import QThread, Qt, Signal
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
@@ -84,7 +85,9 @@ def scan_duplicate_files(
     for group_index, paths in enumerate(size_groups, start=1):
         if cancel_event.is_set():
             return [], errors, True
-        progress_callback(f"Comparando conteúdo dos arquivos ({group_index}/{total_groups})...")
+        progress_callback(
+            f"Comparando conteúdo dos arquivos ({group_index}/{total_groups})..."
+        )
         for path in paths:
             if cancel_event.is_set():
                 return [], errors, True
@@ -268,8 +271,9 @@ class DuplicateFilesPage(QWidget):
         layout.addWidget(results_panel, 1)
 
         note = QLabel(
-            "Seguro por padrão: a análise é somente leitura. Arquivos não são apagados, "
-            "movidos nem modificados. Pastas de sistema podem exigir permissões adicionais."
+            "Seguro por padrão: a análise é somente leitura. "
+            "Arquivos não são apagados, movidos nem modificados. "
+            "Pastas de sistema podem exigir permissões adicionais."
         )
         note.setObjectName("muted")
         note.setWordWrap(True)
@@ -386,7 +390,10 @@ class DuplicateFilesPage(QWidget):
             with open(path, "w", newline="", encoding="utf-8-sig") as csv_file:
                 writer = csv.writer(csv_file, delimiter=";")
                 writer.writerow(
-                    ["Grupo", "Arquivo", "Caminho", "Tamanho em bytes", "Cópias", "SHA-256"]
+                    [
+                        "Grupo", "Arquivo", "Caminho", "Tamanho em bytes",
+                        "Cópias", "SHA-256",
+                    ]
                 )
                 for record in self._records:
                     writer.writerow(
@@ -412,7 +419,7 @@ class DuplicateFilesPage(QWidget):
             f"A lista foi salva em:\\n{path}",
         )
 
-    def closeEvent(self, event: object) -> None:
+    def closeEvent(self, event: QCloseEvent) -> None:
         """Stop a background scan before this page is destroyed."""
         thread = self._scan_thread
         if thread is not None and thread.isRunning():
