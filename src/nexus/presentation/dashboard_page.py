@@ -58,6 +58,15 @@ class DashboardPage(QWidget):
         header.addWidget(refresh_button, alignment=Qt.AlignmentFlag.AlignTop)
         self.status = QLabel("● MONITORAMENTO ATIVO")
         self.status.setObjectName("statusPill")
+        self.status.setStyleSheet(
+            "QLabel { background: #126b3a; color: #ffffff; "
+            "padding: 9px 12px; border-radius: 8px; font-weight: 700; }"
+        )
+        self._status_blink_on = True
+        self.status_timer = QTimer(self)
+        self.status_timer.setInterval(650)
+        self.status_timer.timeout.connect(self._blink_status)
+        self.status_timer.start()
         header.addWidget(self.status, alignment=Qt.AlignmentFlag.AlignTop)
         layout.addLayout(header)
 
@@ -189,16 +198,22 @@ class DashboardPage(QWidget):
         bottom.addWidget(actions_panel, 2)
         layout.addLayout(bottom)
 
-        footer = QLabel("LOCAL E PRIVADO  ·  SEM LOGIN  ·  SOMENTE LEITURA")
-        footer.setObjectName("muted")
-        footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(footer)
-
         self.timer = QTimer(self)
         self.timer.setInterval(4000)
         self.timer.timeout.connect(self.refresh)
         self.timer.start()
         self.refresh()
+
+    def _blink_status(self) -> None:
+        if "MONITORAMENTO ATIVO" not in self.status.text():
+            return
+        self._status_blink_on = not self._status_blink_on
+        background = "#16803f" if self._status_blink_on else "#0b4d2b"
+        self.status.setStyleSheet(
+            "QLabel { "
+            f"background: {background}; color: #ffffff; "
+            "padding: 9px 12px; border-radius: 8px; font-weight: 700; }"
+        )
 
     def refresh(self) -> None:
         try:
@@ -256,6 +271,11 @@ class DashboardPage(QWidget):
             self.status.setText("● MONITORAMENTO ATIVO")
         except (OSError, RuntimeError, ValueError) as error:
             self.status.setText("● DADOS PARCIAIS")
+            self.status_timer.stop()
+            self.status.setStyleSheet(
+                "QLabel { background: #8a5b12; color: #ffffff; "
+                "padding: 9px 12px; border-radius: 8px; font-weight: 700; }"
+            )
             self.system_info.setText(
                 f"Não foi possível ler todos os dados locais.\n{error}"
             )
