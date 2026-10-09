@@ -144,7 +144,7 @@ class MainWindow(QMainWindow):
         QMainWindow, QWidget#central, QWidget#monitoringPage,
         QWidget#processesPage, QWidget#storagePage, QWidget#reportsPage,
         QWidget#duplicateFilesPage, QWidget#settingsPage, QWidget#dashboardPage,
-        QWidget#settingsContent, QScrollArea {{
+        QWidget#settingsContent, QWidget#dashboardContent {{
             background: {bg}; color: {text}; font-family: "Segoe UI";
             font-size: {font_size}; border: none;
         }}
@@ -155,6 +155,9 @@ class MainWindow(QMainWindow):
         QLabel#pageTitle {{ font-size: 27px; font-weight: 700; }}
         QLabel#heroTitle {{ font-size: 25px; font-weight: 700; color: {text}; }}
         QLabel#cardTitle, QLabel#sectionTitle {{ font-size: 15px; font-weight: 600; }}
+        QLabel#metricEyebrow {{ color: {muted}; font-size: 10px; font-weight: 700; letter-spacing: 1px; }}
+        QLabel#heroMonogram {{ color: {accent_text}; font-size: 25px; font-weight: 800; background: {selected}; border-radius: 16px; }}
+        QLabel#statusPill {{ color: {accent_text}; background: {selected}; padding: 9px 12px; border-radius: 8px; font-weight: 600; }}
         QLabel#cardValue, QLabel#metricValue {{ font-size: 22px; font-weight: 700; color: {accent_text}; }}
         QFrame#hero {{ background: {hero}; border: 1px solid {hero_border}; border-radius: 16px; }}
         QFrame#card, QFrame#panel, QFrame#metricCard, QFrame#settingsCard {{
@@ -175,6 +178,9 @@ class MainWindow(QMainWindow):
         }}
         QPushButton#primaryButton:hover {{ background: {hover}; }}
         QPushButton#primaryButton:pressed {{ background: {primary}; }}
+        QPushButton#quickActionButton {{ text-align: left; background: {panel_alt}; color: {text}; border: 1px solid {border}; border-radius: 8px; padding: 9px 11px; }}
+        QPushButton#quickActionButton:hover {{ background: {selected}; border-color: {primary}; }}
+        QPushButton#quickActionButton:pressed {{ background: {selected}; padding-left: 14px; }}
         QPushButton#secondaryButton {{
             background: {panel_alt}; color: {text}; border: 1px solid {border};
             border-radius: 8px; padding: {padding};
