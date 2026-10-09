@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSettings
 from PySide6.QtWidgets import (
     QButtonGroup,
     QFrame,
@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QPushButton,
     QStackedWidget,
+    QMessageBox,
     QVBoxLayout,
     QWidget,
 )
@@ -18,6 +19,7 @@ from nexus.presentation.monitoring_page import MonitoringPage
 from nexus.presentation.processes_page import ProcessesPage
 from nexus.presentation.reports_page import ReportsPage
 from nexus.presentation.storage_page import StoragePage
+from nexus.presentation.settings_page import SettingsPage
 
 
 class MainWindow(QMainWindow):
@@ -28,7 +30,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Nexus Toolkit")
         self.resize(1240, 800)
         self.setMinimumSize(900, 600)
-        self.setStyleSheet(self._stylesheet())
+        self.preferences = QSettings()
+        self.apply_preferences(self._read_preferences())
 
         central = QWidget()
         central.setObjectName("central")
@@ -61,51 +64,158 @@ class MainWindow(QMainWindow):
                 self.pages.addWidget(DuplicateFilesPage())
             elif title == "Relatórios":
                 self.pages.addWidget(ReportsPage())
+            elif title == "Configurações":
+                settings_page = SettingsPage()
+                settings_page.settings_changed.connect(self.apply_preferences)
+                self.pages.addWidget(settings_page)
             else:
                 self.pages.addWidget(self._build_placeholder(title, description))
+
+        startup_index = int(self.preferences.value("startup_page", 0))
+        if 0 <= startup_index < self.pages.count():
+            self.pages.setCurrentIndex(startup_index)
 
         root.addWidget(self._build_sidebar())
         root.addWidget(self.pages, 1)
 
+    def _read_preferences(self) -> dict[str, object]:
+        return {
+            "theme": str(self.preferences.value("theme", "dark")),
+            "accent": str(self.preferences.value("accent", "violet")),
+            "density": str(self.preferences.value("density", "standard")),
+            "sound_effects": self.preferences.value("sound_effects", False, type=bool),
+            "confirm_exit": self.preferences.value("confirm_exit", False, type=bool),
+            "startup_page": self.preferences.value("startup_page", 0, type=int),
+        }
+
+    def apply_preferences(self, preferences: dict[str, object]) -> None:
+        """Apply saved appearance and behavior preferences."""
+        theme = str(preferences.get("theme", "dark"))
+        accent_name = str(preferences.get("accent", "violet"))
+        density = str(preferences.get("density", "standard"))
+        self.preferences.setValue("theme", theme)
+        self.preferences.setValue("accent", accent_name)
+        self.preferences.setValue("density", density)
+        self.preferences.setValue(
+            "sound_effects", bool(preferences.get("sound_effects", False))
+        )
+        self.preferences.setValue(
+            "confirm_exit", bool(preferences.get("confirm_exit", False))
+        )
+        self.preferences.setValue(
+            "startup_page", int(preferences.get("startup_page", 0))
+        )
+        self.setStyleSheet(self._stylesheet(theme, accent_name, density))
+        self.preferences.sync()
+
     @staticmethod
-    def _stylesheet() -> str:
-        return """
-        QMainWindow, QWidget#central {
-            background: #10131b;
-            color: #edf0f7;
-            font-family: "Segoe UI";
-            font-size: 13px;
+    def _stylesheet(
+        theme: str = "dark",
+        accent_name: str = "violet",
+        density: str = "standard",
+    ) -> str:
+        accents = {
+            "violet": ("#8874ed", "#9a88f5", "#302a50", "#c6baff"),
+            "blue": ("#2878d4", "#398be8", "#203a5b", "#a9d2ff"),
+            "green": ("#218c68", "#2da77d", "#1e443a", "#a9efd3"),
+            "orange": ("#c66b2d", "#df8040", "#503522", "#ffd0aa"),
+            "pink": ("#ca548c", "#df6ba2", "#50253b", "#ffc0dc"),
         }
-        QFrame#sidebar {
-            background: #151925;
-            border-right: 1px solid #292f40;
-        }
-        QLabel#brand { color: #b7a8ff; font-size: 23px; font-weight: 700; }
-        QLabel#muted { color: #9ba4b8; }
-        QLabel#pageTitle { font-size: 27px; font-weight: 700; }
-        QLabel#heroTitle { font-size: 25px; font-weight: 700; color: #ffffff; }
-        QLabel#cardTitle { font-size: 15px; font-weight: 600; }
-        QLabel#cardValue { font-size: 22px; font-weight: 700; color: #b7a8ff; }
-        QFrame#hero {
-            background: #20203a; border: 1px solid #39345f; border-radius: 16px;
-        }
-        QFrame#card {
-            background: #191e2b; border: 1px solid #2c3345; border-radius: 13px;
-        }
-        QPushButton#navButton {
-            text-align: left; padding: 12px 14px; border: none;
-            border-radius: 8px; background: transparent; color: #aeb7ca;
-        }
-        QPushButton#navButton:hover { background: #23293a; color: #ffffff; }
-        QPushButton#navButton:checked {
-            background: #302a50; color: #c6baff; font-weight: 600;
-        }
-        QPushButton#primaryButton {
-            background: #8874ed; color: #ffffff; border: none;
-            border-radius: 8px; padding: 11px 16px; font-weight: 600;
-        }
-        QPushButton#primaryButton:hover { background: #9a88f5; }
+        primary, hover, selected, accent_text = accents.get(
+            accent_name, accents["violet"]
+        )
+        if theme == "light":
+            bg, sidebar, panel, panel_alt = "#f4f6fb", "#ffffff", "#ffffff", "#edf0f7"
+            text, muted, border = "#202637", "#667085", "#dce1eb"
+            field, header = "#ffffff", "#e9edf6"
+            hero, hero_border = "#f0edff", "#d8d0ff"
+        else:
+            bg, sidebar, panel, panel_alt = "#10131b", "#151925", "#191e2b", "#151925"
+            text, muted, border = "#edf0f7", "#9ba4b8", "#2c3345"
+            field, header = "#10131b", "#202538"
+            hero, hero_border = "#20203a", "#39345f"
+        font_size = {"compact": "12px", "standard": "13px", "large": "14px"}.get(
+            density, "13px"
+        )
+        padding = "7px 11px" if density == "compact" else "10px 14px"
+        return f"""
+        QMainWindow, QWidget#central, QWidget#monitoringPage,
+        QWidget#processesPage, QWidget#storagePage, QWidget#reportsPage,
+        QWidget#duplicateFilesPage, QWidget#settingsPage {{
+            background: {bg}; color: {text}; font-family: "Segoe UI";
+            font-size: {font_size};
+        }}
+        QWidget {{ color: {text}; }}
+        QFrame#sidebar {{ background: {sidebar}; border-right: 1px solid {border}; }}
+        QLabel#brand {{ color: {accent_text}; font-size: 23px; font-weight: 700; }}
+        QLabel#muted {{ color: {muted}; }}
+        QLabel#pageTitle {{ font-size: 27px; font-weight: 700; }}
+        QLabel#heroTitle {{ font-size: 25px; font-weight: 700; color: {text}; }}
+        QLabel#cardTitle, QLabel#sectionTitle {{ font-size: 15px; font-weight: 600; }}
+        QLabel#cardValue, QLabel#metricValue {{ font-size: 22px; font-weight: 700; color: {accent_text}; }}
+        QFrame#hero {{ background: {hero}; border: 1px solid {hero_border}; border-radius: 16px; }}
+        QFrame#card, QFrame#panel, QFrame#metricCard, QFrame#settingsCard {{
+            background: {panel}; border: 1px solid {border}; border-radius: 13px;
+        }}
+        QPushButton#navButton {{
+            text-align: left; padding: 12px 14px; border: 1px solid transparent;
+            border-radius: 9px; background: transparent; color: {muted};
+        }}
+        QPushButton#navButton:hover {{ background: {panel_alt}; color: {text}; }}
+        QPushButton#navButton:checked {{
+            background: {selected}; color: {accent_text}; border-left: 3px solid {primary};
+            font-weight: 600;
+        }}
+        QPushButton#primaryButton {{
+            background: {primary}; color: #ffffff; border: none;
+            border-radius: 8px; padding: {padding}; font-weight: 600;
+        }}
+        QPushButton#primaryButton:hover {{ background: {hover}; }}
+        QPushButton#primaryButton:pressed {{ background: {primary}; }}
+        QPushButton#secondaryButton {{
+            background: {panel_alt}; color: {text}; border: 1px solid {border};
+            border-radius: 8px; padding: {padding};
+        }}
+        QPushButton#secondaryButton:hover {{ border-color: {primary}; background: {selected}; }}
+        QPushButton:disabled {{ color: {muted}; background: {panel_alt}; }}
+        QLineEdit, QTextEdit, QPlainTextEdit, QComboBox {{
+            background: {field}; color: {text}; border: 1px solid {border};
+            border-radius: 8px; padding: 9px; selection-background-color: {selected};
+        }}
+        QComboBox QAbstractItemView {{
+            background: {panel}; color: {text}; selection-background-color: {selected};
+        }}
+        QTableWidget, QListWidget {{
+            background: {panel_alt}; alternate-background-color: {panel};
+            color: {text}; gridline-color: {border}; border: 1px solid {border};
+            border-radius: 8px; selection-background-color: {selected};
+        }}
+        QHeaderView::section {{
+            background: {header}; color: {accent_text}; border: none;
+            border-bottom: 1px solid {border}; padding: 9px; font-weight: 600;
+        }}
+        QCheckBox {{ spacing: 9px; }}
+        QCheckBox::indicator {{ width: 17px; height: 17px; }}
+        QCheckBox::indicator:checked {{ background: {primary}; border: 1px solid {primary}; border-radius: 4px; }}
+        QCheckBox::indicator:unchecked {{ background: {field}; border: 1px solid {border}; border-radius: 4px; }}
+        QScrollBar:vertical {{ background: {bg}; width: 10px; margin: 0; }}
+        QScrollBar::handle:vertical {{ background: {border}; border-radius: 5px; min-height: 24px; }}
+        QToolTip {{ background: {panel}; color: {text}; border: 1px solid {border}; padding: 5px; }}
         """
+
+    def closeEvent(self, event) -> None:
+        if self.preferences.value("confirm_exit", False, type=bool):
+            answer = QMessageBox.question(
+                self,
+                "Sair do Nexus Toolkit",
+                "Deseja realmente fechar o Nexus Toolkit?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if answer != QMessageBox.StandardButton.Yes:
+                event.ignore()
+                return
+        event.accept()
 
     def _build_sidebar(self) -> QFrame:
         sidebar = QFrame()
