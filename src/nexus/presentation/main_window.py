@@ -217,9 +217,9 @@ class MainWindow(QMainWindow):
         layout.addLayout(cards_layout)
 
         notice = QLabel(
-            "Os módulos ainda estão em desenvolvimento. Esta tela é a base "
-            "visual do aplicativo e ainda não executa diagnósticos nem altera "
-            "arquivos do computador."
+            "O monitoramento já consulta informações básicas do computador em "
+            "modo somente leitura. Os demais módulos continuam em desenvolvimento; "
+            "nenhum arquivo ou configuração é alterado por esta tela."
         )
         notice.setObjectName("muted")
         notice.setWordWrap(True)
