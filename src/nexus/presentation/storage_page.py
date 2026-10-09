@@ -126,9 +126,7 @@ class StoragePage(QWidget):
             QMessageBox.warning(
                 self,
                 "Falha ao consultar armazenamento",
-                f"Não foi possível listar as unidades.
-
-{error}",
+                f"Não foi possível listar as unidades.\n\n{error}",
             )
             return
 
