@@ -77,7 +77,9 @@ def scan_temporary_files(
                     if current_time - stat.st_mtime < minimum_age_seconds:
                         continue
                     seen.add(key)
-                    items.append(CleanupItem(str(resolved), stat.st_size, stat.st_mtime))
+                    items.append(
+                        CleanupItem(str(resolved), stat.st_size, stat.st_mtime)
+                    )
                 except (OSError, ValueError):
                     errors += 1
     items.sort(key=lambda item: item.size_bytes, reverse=True)
