@@ -26,7 +26,8 @@ def test_process_search_filters_visible_rows() -> None:
 
     assert page.table.rowCount() >= 1
     for row in range(page.table.rowCount()):
-        assert first_process_name.casefold() in page.table.item(row, 1).text().casefold()
+        displayed_name = page.table.item(row, 1).text().casefold()
+        assert first_process_name.casefold() in displayed_name
 
     page.close()
     app.processEvents()
