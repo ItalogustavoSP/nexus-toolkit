@@ -9,7 +9,7 @@ from typing import Any
 import psutil
 import PySide6
 
-from PySide6.QtCore import QSettings, Signal
+from PySide6.QtCore import QSettings, Qt, Signal
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -176,8 +176,7 @@ class SettingsPage(QWidget):
         self.system_details.setObjectName("muted")
         self.system_details.setWordWrap(True)
         self.system_details.setTextInteractionFlags(
-            self.system_details.textInteractionFlags()
-            | __import__("PySide6.QtCore", fromlist=["Qt"]).Qt.TextInteractionFlag.TextSelectableByMouse
+            Qt.TextInteractionFlag.TextSelectableByMouse
         )
         self.system_details.setText(
             f"Sistema operacional: {platform.system()} {platform.release()}\\n"
