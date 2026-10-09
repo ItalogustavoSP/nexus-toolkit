@@ -44,6 +44,32 @@ def test_scanner_ignores_duplicate_root_entries(tmp_path: Path) -> None:
     assert len(records) == 2
 
 
+def test_duplicate_page_inspects_selected_file(tmp_path: Path) -> None:
+    app = QApplication.instance() or QApplication([])
+    duplicate = tmp_path / "copy.txt"
+    duplicate.write_text("same content", encoding="utf-8")
+    page = DuplicateFilesPage()
+    record = {
+        "group": 1,
+        "name": duplicate.name,
+        "path": str(duplicate),
+        "size": duplicate.stat().st_size,
+        "hash": "a" * 64,
+        "copies": 2,
+    }
+
+    page._on_scan_completed([record], 0, False)
+    page.table.selectRow(0)
+
+    assert page.open_location_button.isEnabled()
+    assert "copy.txt" in page.selection_details.text()
+    assert "SHA-256:" in page.selection_details.text()
+    assert str(duplicate) in page.selection_details.text()
+
+    page.close()
+    app.processEvents()
+
+
 def test_duplicate_page_and_navigation() -> None:
     app = QApplication.instance() or QApplication([])
     page = DuplicateFilesPage()
