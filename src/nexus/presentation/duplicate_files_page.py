@@ -10,7 +10,7 @@ from typing import Callable
 
 from PySide6.QtCore import QThread, Qt, Signal
 from PySide6.QtGui import QCloseEvent
-from PySide6.QtWidgets import (
+from PySide6.QtCore import QSettings\nfrom PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
     QHBoxLayout,
@@ -333,6 +333,8 @@ class DuplicateFilesPage(QWidget):
             f"potencialmente recuperável: {_format_size(wasted_bytes)}. "
             f"Itens inacessíveis: {errors}."
         )
+        if not canceled and QSettings().value("sound_effects", False, type=bool):
+            QApplication.beep()
 
     def _on_thread_finished(self) -> None:
         self.scan_button.setEnabled(True)
