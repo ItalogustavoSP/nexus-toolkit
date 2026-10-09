@@ -61,8 +61,8 @@ class SettingsPage(QWidget):
         )
         description.setObjectName("muted")
         description.setWordWrap(True)
-        root.addWidget(title)
-        root.addWidget(description)
+        layout.addWidget(title)
+        layout.addWidget(description)
 
         appearance = self._card("Aparência")
         appearance_layout = QFormLayout()
@@ -95,7 +95,7 @@ class SettingsPage(QWidget):
         ]:
             self.density_combo.addItem(label, value)
         appearance_layout.addRow("Tamanho da interface", self.density_combo)
-        root.addWidget(appearance)
+        layout.addWidget(appearance)
 
         behavior = self._card("Comportamento")
         behavior_layout = QVBoxLayout()
@@ -127,7 +127,7 @@ class SettingsPage(QWidget):
             self.startup_combo.addItem(label, index)
         behavior_layout.addWidget(QLabel("Abrir esta página ao iniciar:"))
         behavior_layout.addWidget(self.startup_combo)
-        root.addWidget(behavior)
+        layout.addWidget(behavior)
 
         privacy = self._card("Privacidade e dados")
         privacy_layout = QVBoxLayout()
@@ -142,7 +142,7 @@ class SettingsPage(QWidget):
         privacy_text.setObjectName("muted")
         privacy_text.setWordWrap(True)
         privacy_layout.addWidget(privacy_text)
-        root.addWidget(privacy)
+        layout.addWidget(privacy)
 
         actions_card = self._card("Backup e manutenção")
         actions = QHBoxLayout()
@@ -160,11 +160,11 @@ class SettingsPage(QWidget):
         self.reset_button.setObjectName("primaryButton")
         self.reset_button.clicked.connect(self.reset_settings)
         actions.addWidget(self.reset_button)
-        root.addWidget(actions_card)
+        layout.addWidget(actions_card)
 
         self.status_label = QLabel("Configurações aplicadas automaticamente.")
         self.status_label.setObjectName("muted")
-        root.addWidget(self.status_label)
+        layout.addWidget(self.status_label)
         layout.addStretch()
 
         self._load_preferences()
