@@ -56,7 +56,7 @@ class DonutChart(QWidget):
         painter.setFont(QFont(self.font().family(), 8))
         painter.drawText(
             detail_rect,
-            Qt.AlignmentFlag.AlignHCenter | Qt.TextFlag.TextWordWrap,
+            Qt.AlignmentFlag.AlignHCenter,
             self.detail,
         )
 
