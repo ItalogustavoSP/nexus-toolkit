@@ -6,7 +6,6 @@ from pathlib import Path
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtWidgets import (
     QAbstractItemView,
-    QCheckBox,
     QFrame,
     QHBoxLayout,
     QHeaderView,
@@ -24,6 +23,8 @@ from nexus.services.cleanup_service import (
     delete_temporary_files,
     scan_temporary_files,
 )
+
+PAGE_SIZE = 250
 
 
 def _format_size(size_bytes: int) -> str:
@@ -44,23 +45,27 @@ class _CleanupScanThread(QThread):
 
 
 class CleanupPage(QWidget):
-    """Review and safely remove old files from temporary folders."""
+    """Conservative, paginated review of old files in temporary folders."""
 
     def __init__(self) -> None:
         super().__init__()
         self.setObjectName("cleanupPage")
         self._items: list[CleanupItem] = []
+        self._selected_paths: set[str] = set()
+        self._page_index = 0
+        self._scan_errors = 0
         self._scan_thread: _CleanupScanThread | None = None
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(34, 30, 34, 30)
         layout.setSpacing(15)
 
-        title = QLabel("Limpeza e otimização")
+        title = QLabel("Limpeza inteligente")
         title.setObjectName("pageTitle")
         description = QLabel(
-            "Analise arquivos temporários antigos e escolha exatamente o que "
-            "deseja remover. A análise não apaga nem modifica arquivos."
+            "Encontre candidatos à limpeza sem apagar nada durante a análise. "
+            "O Nexus usa regras conservadoras; nenhum método consegue garantir "
+            "que todo arquivo temporário esteja sem uso."
         )
         description.setObjectName("muted")
         description.setWordWrap(True)
@@ -71,12 +76,13 @@ class CleanupPage(QWidget):
         overview.setObjectName("hero")
         overview_layout = QVBoxLayout(overview)
         overview_layout.setContentsMargins(18, 16, 18, 16)
-        overview_title = QLabel("Limpeza segura de arquivos temporários")
+        overview_title = QLabel("Análise conservadora")
         overview_title.setObjectName("sectionTitle")
         overview_text = QLabel(
-            "Por segurança, apenas arquivos com mais de 24 horas em pastas "
-            "temporárias reconhecidas são listados. Pastas e links simbólicos "
-            "não são removidos."
+            "Somente arquivos dentro de pastas temporárias reconhecidas, com "
+            "pelo menos 7 dias sem modificação, entram na lista. Pastas, links "
+            "simbólicos, documentos pessoais e unidades inteiras não são alvo. "
+            "Revise a seleção antes de qualquer exclusão."
         )
         overview_text.setObjectName("muted")
         overview_text.setWordWrap(True)
@@ -89,16 +95,16 @@ class CleanupPage(QWidget):
         self.scan_button.setObjectName("primaryButton")
         self.scan_button.clicked.connect(self.start_scan)
         actions.addWidget(self.scan_button)
-        self.select_all_button = QPushButton("Selecionar todos")
-        self.select_all_button.setObjectName("secondaryButton")
-        self.select_all_button.clicked.connect(self.select_all)
-        self.select_all_button.setEnabled(False)
-        actions.addWidget(self.select_all_button)
-        self.clear_selection_button = QPushButton("Limpar seleção")
-        self.clear_selection_button.setObjectName("secondaryButton")
-        self.clear_selection_button.clicked.connect(self.clear_selection)
-        self.clear_selection_button.setEnabled(False)
-        actions.addWidget(self.clear_selection_button)
+        self.select_page_button = QPushButton("Selecionar página")
+        self.select_page_button.setObjectName("secondaryButton")
+        self.select_page_button.clicked.connect(self.select_current_page)
+        self.select_page_button.setEnabled(False)
+        actions.addWidget(self.select_page_button)
+        self.clear_page_button = QPushButton("Limpar seleção da página")
+        self.clear_page_button.setObjectName("secondaryButton")
+        self.clear_page_button.clicked.connect(self.clear_current_page)
+        self.clear_page_button.setEnabled(False)
+        actions.addWidget(self.clear_page_button)
         self.clean_button = QPushButton("Remover selecionados")
         self.clean_button.setObjectName("primaryButton")
         self.clean_button.clicked.connect(self.clean_selected)
@@ -133,15 +139,29 @@ class CleanupPage(QWidget):
             self.table.horizontalHeader().setSectionResizeMode(
                 column, QHeaderView.ResizeMode.ResizeToContents
             )
-        self.table.itemChanged.connect(self._update_selection_summary)
+        self.table.itemChanged.connect(self._on_item_changed)
         panel_layout.addWidget(self.table, 1)
+
+        pager = QHBoxLayout()
+        self.previous_button = QPushButton("Página anterior")
+        self.previous_button.clicked.connect(self.previous_page)
+        self.previous_button.setEnabled(False)
+        pager.addWidget(self.previous_button)
+        self.page_label = QLabel("Página 0 de 0")
+        self.page_label.setObjectName("muted")
+        pager.addWidget(self.page_label)
+        self.next_button = QPushButton("Próxima página")
+        self.next_button.clicked.connect(self.next_page)
+        self.next_button.setEnabled(False)
+        pager.addWidget(self.next_button)
+        pager.addStretch()
+        panel_layout.addLayout(pager)
         layout.addWidget(panel, 1)
 
         note = QLabel(
-            "A limpeza exige seleção e confirmação explícitas. Arquivos em uso, "
-            "recentes ou fora das pastas temporárias aprovadas serão ignorados. "
-            "O módulo não limpa o Registro, caches de navegador nem arquivos do "
-            "Windows Update."
+            "A análise não modifica arquivos. A exclusão exige seleção manual e "
+            "confirmação. Arquivos em uso ou inacessíveis podem ser ignorados. "
+            "O Nexus não limpa Registro, caches de navegador nem Windows Update."
         )
         note.setObjectName("muted")
         note.setWordWrap(True)
@@ -156,9 +176,9 @@ class CleanupPage(QWidget):
             return
         self.scan_button.setEnabled(False)
         self.clean_button.setEnabled(False)
-        self.select_all_button.setEnabled(False)
-        self.clear_selection_button.setEnabled(False)
-        self.summary.setText("Analisando pastas temporárias...")
+        self.select_page_button.setEnabled(False)
+        self.clear_page_button.setEnabled(False)
+        self.summary.setText("Analisando pastas temporárias em segundo plano...")
         self._scan_thread = _CleanupScanThread()
         self._scan_thread.completed.connect(self._on_scan_completed)
         self._scan_thread.finished.connect(self._on_scan_finished)
@@ -166,33 +186,14 @@ class CleanupPage(QWidget):
 
     def _on_scan_completed(self, items: list[CleanupItem], errors: int) -> None:
         self._items = items
-        self.table.blockSignals(True)
-        self.table.setRowCount(len(items))
-        for row, item in enumerate(items):
-            checkbox = QCheckBox()
-            checkbox.setToolTip("Marque para incluir este arquivo na limpeza")
-            checkbox.setAccessibleName(f"Selecionar {Path(item.path).name}")
-            checkbox.toggled.connect(self._on_checkbox_toggled)
-            self.table.setCellWidget(row, 0, checkbox)
-            name_item = QTableWidgetItem(Path(item.path).name)
-            name_item.setToolTip(item.path)
-            name_item.setData(Qt.ItemDataRole.UserRole, item.path)
-            self.table.setItem(row, 1, name_item)
-            modified = datetime.fromtimestamp(item.modified_at).strftime(
-                "%d/%m/%Y %H:%M"
-            )
-            self.table.setItem(row, 2, QTableWidgetItem(modified))
-            self.table.setItem(
-                row, 3, QTableWidgetItem(_format_size(item.size_bytes))
-            )
-        self.table.blockSignals(False)
-        self.select_all_button.setEnabled(bool(items))
-        self.clear_selection_button.setEnabled(bool(items))
-        self.clean_button.setEnabled(bool(items))
-        self.summary.setText(
-            f"Análise concluída: {len(items)} arquivos antigos encontrados · "
-            f"{_format_size(self._selected_size(items))} disponíveis para revisão. "
-            f"Erros de acesso: {errors}. Nenhum arquivo foi apagado."
+        self._selected_paths.clear()
+        self._page_index = 0
+        self._scan_errors = errors
+        self._render_page()
+        self._update_summary(
+            f"Análise concluída: {len(items)} candidatos · "
+            f"{_format_size(self._selected_size(items))} encontrados · "
+            f"erros de acesso: {errors}. Nenhum arquivo foi apagado."
         )
 
     def _on_scan_finished(self) -> None:
@@ -202,63 +203,109 @@ class CleanupPage(QWidget):
         if thread is not None:
             thread.deleteLater()
 
-    def _checkboxes(self) -> list[QCheckBox]:
-        return [
-            checkbox
-            for row in range(self.table.rowCount())
-            if isinstance(
-                (checkbox := self.table.cellWidget(row, 0)), QCheckBox
+    def _render_page(self) -> None:
+        start = self._page_index * PAGE_SIZE
+        visible = self._items[start : start + PAGE_SIZE]
+        self.table.blockSignals(True)
+        self.table.setRowCount(len(visible))
+        for row, item in enumerate(visible):
+            checkbox_item = QTableWidgetItem()
+            checkbox_item.setFlags(
+                Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsUserCheckable
             )
-        ]
-
-    def select_all(self) -> None:
-        for checkbox in self._checkboxes():
-            checkbox.setChecked(True)
-        self._update_selection_summary()
-
-    def clear_selection(self) -> None:
-        for checkbox in self._checkboxes():
-            checkbox.setChecked(False)
-        self._update_selection_summary()
-
-    def _on_checkbox_toggled(self, _checked: bool) -> None:
-        self._update_selection_summary()
-
-    def _update_selection_summary(self, _item: QTableWidgetItem | None = None) -> None:
-        selected_rows = [
-            row
-            for row in range(self.table.rowCount())
-            if isinstance(self.table.cellWidget(row, 0), QCheckBox)
-            and self.table.cellWidget(row, 0).isChecked()
-        ]
-        selected_size = sum(self._items[row].size_bytes for row in selected_rows)
-        self.summary.setText(
-            f"{len(self._items)} arquivos encontrados · "
-            f"{len(selected_rows)} selecionados · "
-            f"{_format_size(selected_size)} selecionados para remoção. "
-            "A exclusão só ocorre após confirmação."
+            checkbox_item.setCheckState(
+                Qt.CheckState.Checked
+                if item.path in self._selected_paths
+                else Qt.CheckState.Unchecked
+            )
+            checkbox_item.setData(Qt.ItemDataRole.UserRole, item.path)
+            self.table.setItem(row, 0, checkbox_item)
+            name_item = QTableWidgetItem(Path(item.path).name)
+            name_item.setToolTip(item.path)
+            name_item.setData(Qt.ItemDataRole.UserRole, item.path)
+            self.table.setItem(row, 1, name_item)
+            modified = datetime.fromtimestamp(item.modified_at).strftime(
+                "%d/%m/%Y %H:%M"
+            )
+            self.table.setItem(row, 2, QTableWidgetItem(modified))
+            self.table.setItem(row, 3, QTableWidgetItem(_format_size(item.size_bytes)))
+        self.table.blockSignals(False)
+        pages = (len(self._items) + PAGE_SIZE - 1) // PAGE_SIZE
+        self.page_label.setText(
+            f"Página {self._page_index + 1 if pages else 0} de {pages} "
+            f"· {len(visible)} arquivos nesta página"
         )
+        self.previous_button.setEnabled(self._page_index > 0)
+        self.next_button.setEnabled(start + PAGE_SIZE < len(self._items))
+        has_items = bool(self._items)
+        self.select_page_button.setEnabled(has_items)
+        self.clear_page_button.setEnabled(has_items)
+        self.clean_button.setEnabled(bool(self._selected_paths))
+
+    def _on_item_changed(self, item: QTableWidgetItem) -> None:
+        if item.column() != 0:
+            return
+        path = item.data(Qt.ItemDataRole.UserRole)
+        if not path:
+            return
+        if item.checkState() == Qt.CheckState.Checked:
+            self._selected_paths.add(path)
+        else:
+            self._selected_paths.discard(path)
+        self._update_summary()
+
+    def _update_summary(self, prefix: str = "") -> None:
+        selected = [item for item in self._items if item.path in self._selected_paths]
+        base = (
+            f"{len(self._items)} candidatos · {len(selected)} selecionados · "
+            f"{_format_size(self._selected_size(selected))} selecionados para "
+            "revisão. Nenhum arquivo será removido sem confirmação."
+        )
+        self.summary.setText(f"{prefix}\n{base}" if prefix else base)
+        self.clean_button.setEnabled(bool(selected))
+
+    def select_current_page(self) -> None:
+        start = self._page_index * PAGE_SIZE
+        for item in self._items[start : start + PAGE_SIZE]:
+            self._selected_paths.add(item.path)
+        self._render_page()
+        self._update_summary()
+
+    def clear_current_page(self) -> None:
+        start = self._page_index * PAGE_SIZE
+        for item in self._items[start : start + PAGE_SIZE]:
+            self._selected_paths.discard(item.path)
+        self._render_page()
+        self._update_summary()
+
+    def previous_page(self) -> None:
+        if self._page_index > 0:
+            self._page_index -= 1
+            self._render_page()
+
+    def next_page(self) -> None:
+        if (self._page_index + 1) * PAGE_SIZE < len(self._items):
+            self._page_index += 1
+            self._render_page()
 
     def clean_selected(self) -> None:
         selected = [
-            self._items[row]
-            for row in range(self.table.rowCount())
-            if isinstance(self.table.cellWidget(row, 0), QCheckBox)
-            and self.table.cellWidget(row, 0).isChecked()
+            item for item in self._items if item.path in self._selected_paths
         ]
         if not selected:
             QMessageBox.information(
                 self, "Nenhum arquivo selecionado",
-                "Marque pelo menos um arquivo para continuar.",
+                "Marque os arquivos que deseja revisar antes de continuar.",
             )
             return
         total = self._selected_size(selected)
         answer = QMessageBox.question(
             self,
             "Confirmar limpeza",
-            f"Remover {len(selected)} arquivos temporários selecionados "
+            f"Remover {len(selected)} arquivos selecionados "
             f"({_format_size(total)})?\n\n"
-            "Essa ação não pode ser desfeita. Arquivos em uso serão ignorados.",
+            "Esta ação não pode ser desfeita. Continue apenas se revisou "
+            "os caminhos e entende que esses arquivos podem ser removidos.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -267,14 +314,13 @@ class CleanupPage(QWidget):
         deleted, freed, skipped = delete_temporary_files(
             [item.path for item in selected]
         )
-        self.summary.setText(
-            f"Limpeza finalizada: {deleted} arquivos removidos · "
-            f"{_format_size(freed)} liberados · {skipped} ignorados ou "
-            "indisponíveis. Faça uma nova análise para atualizar a lista."
-        )
+        self._selected_paths.clear()
         self.clean_button.setEnabled(False)
-        self.select_all_button.setEnabled(False)
-        self.clear_selection_button.setEnabled(False)
+        self._update_summary(
+            f"Limpeza concluída: {deleted} removidos · "
+            f"{_format_size(freed)} liberados · {skipped} ignorados. "
+            "Execute uma nova análise para atualizar a lista."
+        )
 
     def closeEvent(self, event) -> None:
         thread = self._scan_thread
