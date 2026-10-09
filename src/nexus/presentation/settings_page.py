@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from PySide6.QtCore import QSettings, Qt, Signal
+from PySide6.QtCore import QSettings, Signal
 from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
@@ -61,7 +61,8 @@ class SettingsPage(QWidget):
         root.addWidget(description)
 
         appearance = self._card("Aparência")
-        appearance_layout = QFormLayout(appearance)
+        appearance_layout = QFormLayout()
+        appearance.layout().addLayout(appearance_layout)
         appearance_layout.setContentsMargins(18, 18, 18, 18)
         appearance_layout.setHorizontalSpacing(24)
         appearance_layout.setVerticalSpacing(14)
@@ -93,7 +94,8 @@ class SettingsPage(QWidget):
         root.addWidget(appearance)
 
         behavior = self._card("Comportamento")
-        behavior_layout = QVBoxLayout(behavior)
+        behavior_layout = QVBoxLayout()
+        behavior.layout().addLayout(behavior_layout)
         behavior_layout.setContentsMargins(18, 18, 18, 18)
         behavior_layout.setSpacing(13)
 
@@ -124,7 +126,8 @@ class SettingsPage(QWidget):
         root.addWidget(behavior)
 
         privacy = self._card("Privacidade e dados")
-        privacy_layout = QVBoxLayout(privacy)
+        privacy_layout = QVBoxLayout()
+        privacy.layout().addLayout(privacy_layout)
         privacy_layout.setContentsMargins(18, 18, 18, 18)
         privacy_layout.setSpacing(8)
         privacy_text = QLabel(
@@ -138,7 +141,8 @@ class SettingsPage(QWidget):
         root.addWidget(privacy)
 
         actions_card = self._card("Backup e manutenção")
-        actions = QHBoxLayout(actions_card)
+        actions = QHBoxLayout()
+        actions_card.layout().addLayout(actions)
         actions.setContentsMargins(18, 18, 18, 18)
         self.export_button = QPushButton("Exportar configurações")
         self.export_button.setObjectName("secondaryButton")
