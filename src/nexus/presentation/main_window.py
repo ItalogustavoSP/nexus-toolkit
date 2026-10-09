@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, QSettings
+from PySide6.QtCore import QSettings, Qt
 from PySide6.QtWidgets import (
     QButtonGroup,
     QFrame,
@@ -18,8 +18,8 @@ from nexus.presentation.duplicate_files_page import DuplicateFilesPage
 from nexus.presentation.monitoring_page import MonitoringPage
 from nexus.presentation.processes_page import ProcessesPage
 from nexus.presentation.reports_page import ReportsPage
-from nexus.presentation.storage_page import StoragePage
 from nexus.presentation.settings_page import SettingsPage
+from nexus.presentation.storage_page import StoragePage
 
 
 class MainWindow(QMainWindow):
