@@ -8,12 +8,41 @@ from pathlib import Path
 
 MINIMUM_AGE_SECONDS = 7 * 24 * 60 * 60
 
+# These file types can contain programs, drivers, installers, databases, or
+# configuration. The cleaner deliberately leaves them out of its candidates.
+PROTECTED_SUFFIXES = {
+    ".exe", ".dll", ".sys", ".msi", ".msp", ".msix", ".appx",
+    ".bat", ".cmd", ".ps1", ".psm1", ".com", ".scr", ".ocx",
+    ".cpl", ".reg", ".db", ".sqlite", ".sqlite3", ".mdb",
+    ".ini", ".cfg", ".conf", ".yaml", ".yml", ".toml",
+    ".zip", ".7z", ".rar", ".iso", ".img",
+}
+LOW_RISK_SUFFIXES = {".tmp", ".temp", ".partial", ".part", ".dmp"}
+
 
 @dataclass(frozen=True)
 class CleanupItem:
     path: str
     size_bytes: int
     modified_at: float
+    risk: str = "Revisar"
+    reason: str = "Tipo de arquivo não reconhecido como temporário"
+
+
+def classify_temporary_file(path: Path) -> tuple[str, str] | None:
+    """Return a cautious risk label, or None for file types we protect."""
+    suffix = path.suffix.lower()
+    if suffix in PROTECTED_SUFFIXES:
+        return None
+    if suffix in LOW_RISK_SUFFIXES or path.name.lower().startswith(("tmp", "temp")):
+        return (
+            "Baixo",
+            "Nome/extensão com padrão temporário; ainda confirme que não é necessário",
+        )
+    return (
+        "Revisar",
+        "Arquivo antigo em pasta temporária, mas o tipo/nome não confirma que é descartável",
+    )
 
 
 def cleanup_roots() -> list[Path]:
@@ -68,6 +97,9 @@ def scan_temporary_files(
                 try:
                     if path.is_symlink() or not path.is_file():
                         continue
+                    classification = classify_temporary_file(path)
+                    if classification is None:
+                        continue
                     resolved = path.resolve(strict=True)
                     resolved.relative_to(base)
                     key = os.path.normcase(str(resolved))
@@ -77,8 +109,11 @@ def scan_temporary_files(
                     if current_time - stat.st_mtime < minimum_age_seconds:
                         continue
                     seen.add(key)
+                    risk, reason = classification
                     items.append(
-                        CleanupItem(str(resolved), stat.st_size, stat.st_mtime)
+                        CleanupItem(
+                            str(resolved), stat.st_size, stat.st_mtime, risk, reason
+                        )
                     )
                 except (OSError, ValueError):
                     errors += 1
@@ -93,8 +128,9 @@ def delete_temporary_files(
     now: float | None = None,
     minimum_age_seconds: int = MINIMUM_AGE_SECONDS,
 ) -> tuple[int, int, int]:
-    """Delete only explicitly selected old regular files inside approved roots.
+    """Delete only selected old regular files inside approved temp roots.
 
+    Protected executable/configuration/database/archive types are never deleted.
     Returns the number of deleted files, bytes freed, and skipped/failed paths.
     """
     current_time = time.time() if now is None else now
@@ -114,6 +150,9 @@ def delete_temporary_files(
         try:
             candidate = Path(raw_path)
             if candidate.is_symlink() or not candidate.is_file():
+                skipped += 1
+                continue
+            if classify_temporary_file(candidate) is None:
                 skipped += 1
                 continue
             resolved = candidate.resolve(strict=True)
